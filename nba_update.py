@@ -151,16 +151,29 @@ class RankingScene(Scene):
         self.east.teams.set_xy(x_east, y_conf)
         self.west.teams.set_xy(x_west, y_conf)
         self.east.wins.set_xy(x_east + 1, y_conf)
-        self.east.losses.set_xy(x_east + 2, - 3.5)
+        self.east.losses.set_xy(x_east + 2, y_conf)
 
         self.west.wins.set_xy(x_west + 1, y_conf)
-        self.west.losses.set_xy(x_west + 2, - 3.5)
+        self.west.losses.set_xy(x_west + 2, y_conf)
+
+        # Wins/losses title (W and L)
+        y_titles = 2.8
+        wins_title_east = Text("W", **self.numbers_args).scale(.45)
+        wins_title_east.set_xy(x_east + 1, y_titles)
+        losses_title_east = Text("L", **self.numbers_args).scale(.45)
+        losses_title_east.set_xy(x_east + 2, y_titles)
+        wins_title_west = wins_title_east.copy().set_x(x_west + 1)
+        losses_title_west = losses_title_east.copy().set_x(x_west + 2)
+
+        wins_losses = VGroup(wins_title_east, losses_title_east,
+                             wins_title_west, losses_title_west)
 
         # Animate the whole thing
         self.play(self.east.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
         self.play(self.west.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
+        self.play(FadeInFrom(wins_losses, direction=2 * UP))
 
         self.play(self.east.wins.arrange_submobjects,
                   UP, False, False, {"buff": .52})
@@ -174,8 +187,29 @@ class RankingScene(Scene):
 
     def animate_numbers(self):
         """Animate wins/losses numbers from 0 to their actual values"""
-        pass
 
     def animate_versus(self):
         """Animation of the confrontation between teams (1-8, 2-7, ...)"""
         pass
+
+
+class Test(Scene):
+
+    def construct(self):
+        t = Text("dv ", font="Roboto Light")
+        rr = Text(" dd", font="Roboto Light")
+        t.set_x(4)
+        rr.set_x(2)
+        v = VGroup(t, rr)
+        alpha = ValueTracker(0)
+
+        def updater(g):
+            for i in g:
+                x, y, z = i.get_center()
+                i.become(
+                    Text(str(int(alpha.get_value() * 20)),
+                         font="Roboto Light", color=BLACK).set_xy(x, y)
+                )
+        v.add_updater(updater)
+        self.add(v)
+        self.play(alpha.increment_value, 1)
