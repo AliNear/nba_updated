@@ -33,22 +33,26 @@ class Conference:
     """A holder object for a conference (teams, W/L)"""
 
     def __init__(self):
+        numbers_args = {
+            "font": "Roboto Condensed Italic",
+            "color": WHITE,
+        }
         self.teams = []
-        self.wins = []
-        self.losses = []
+        self.wins = VGroup(*[Text("00", **numbers_args).scale(.4)
+                             for i in range(8)])
+        self.losses = VGroup(
+            *[Text("00", **numbers_args).scale(.4) for i in range(8)])
         self.wins_raw = []
+        self.losses_raw = []
 
     def convert(self):
         """This function is used to reverse the properties of the class, it 
         adresses an issue where the objects are displayed in the opposite order
         """
         self.teams.reverse()
-        self.wins.reverse()
-        self.losses.reverse()
         self.wins_raw.reverse()
+        self.losses_raw.reverse()
         self.teams = Group(*self.teams)
-        self.wins = VGroup(*self.wins)
-        self.losses = VGroup(*self.losses)
 
 
 class TwoRects(VMobject):
@@ -85,7 +89,8 @@ class RankingScene(Scene):
         self.draw_foundation()
         self.add_teams()
         self.setup_conferences()
-        self.animate_numbers(1)
+        self.animate_numbers(self.east)
+        self.animate_numbers(self.west)
         self.animate_versus()
 
     def prepare(self):
@@ -127,21 +132,14 @@ class RankingScene(Scene):
         for i in zip(iter(REGULAR_SEASON_EAST), iter(REGULAR_SEASON_WEST)):
             east, west = i
             imgs = [Avatar(TEAMS_PATH + n + ".png", 0, 0, .25) for n in i]
-            txt_win_east = Text("00", **self.numbers_args).scale(.4)
-            txt_loss_east = Text(str(
-                REGULAR_SEASON_EAST[east][1]), **self.numbers_args).scale(.4)
 
-            txt_win_west = Text(str(
-                REGULAR_SEASON_WEST[west][0]), **self.numbers_args).scale(.4)
-            txt_loss_west = Text(str(
-                REGULAR_SEASON_WEST[west][1]), **self.numbers_args).scale(.4)
             self.east.teams.append(imgs[0])
-            self.east.wins.append(txt_win_east)
-            self.east.losses.append(txt_loss_east)
             self.west.teams.append(imgs[1])
-            self.west.wins.append(txt_win_west)
-            self.west.losses.append(txt_loss_west)
             self.east.wins_raw.append(REGULAR_SEASON_EAST[east][0])
+            self.west.wins_raw.append(REGULAR_SEASON_WEST[west][0])
+            self.east.losses_raw.append(REGULAR_SEASON_EAST[east][1])
+            self.west.losses_raw.append(REGULAR_SEASON_WEST[west][1])
+
         self.east.convert()
         self.west.convert()
 
@@ -177,31 +175,43 @@ class RankingScene(Scene):
                   UP, False, False, {"buff": .3})
         self.play(FadeInFrom(wins_losses, direction=2 * UP))
 
-        self.play(self.east.losses.arrange_submobjects,
-                  UP, False, False, {"buff": .52})
-
-        self.play(self.west.wins.arrange_submobjects,
-                  UP, False, False, {"buff": .52})
-        self.play(self.west.losses.arrange_submobjects,
-                  UP, False, False, {"buff": .52})
-
-    def animate_numbers(self, index):
-        """Animate wins/losses numbers from 0 to their actual values"""
+    def animate_numbers(self, conf):
+        """Animate wins/losses numbers from 0 to their actual values
+        Parameters
+        ----------
+        conf: Conference
+            The conference to add animation to its W/L
+        """
         alpha = ValueTracker(0)
 
-        def updater_wins_east(g):
+        def updater_wins(g):
             j = 0
             for i in g:
                 x, y, z = i.get_center()
-                txt = str(int(alpha.get_value() * self.east.wins_raw[j]))
+                txt = str(int(alpha.get_value() * conf.wins_raw[j]))
                 i.become(
                     Text(txt, **self.numbers_args).set_xy(x, y).scale(.4)
                 )
                 j += 1
 
-        self.east.wins.arrange_submobjects(UP, False, False, buff=.52)
-        self.east.wins.add_updater(updater_wins_east)
-        self.add(self.east.wins)
+        def updater_losses(g):
+            j = 0
+            for i in g:
+                x, y, z = i.get_center()
+                txt = str(int(alpha.get_value() * conf.losses_raw[j]))
+                i.become(
+                    Text(txt, **self.numbers_args).set_xy(x, y).scale(.4)
+                )
+                j += 1
+
+        conf.losses.arrange_submobjects(UP, False, False, buff=.52)
+        conf.losses.add_updater(updater_losses)
+        self.add(conf.losses)
+
+        conf.wins.arrange_submobjects(UP, False, False, buff=.52)
+        conf.wins.add_updater(updater_wins)
+        self.add(conf.wins)
+
         self.play(alpha.increment_value, 1)
         self.wait()
 
