@@ -217,7 +217,26 @@ class RankingScene(Scene):
 
     def animate_versus(self):
         """Animation of the confrontation between teams (1-8, 2-7, ...)"""
-        pass
+
+        groups = Group()
+        for i in range(8):
+            v = Group(self.east.teams[i],
+                      self.east.wins[i], self.east.losses[i])
+            groups.add(v)
+        teams_animations = VGroup()
+        dots_animations = VGroup()
+        sequence = [(0, 7, DOWN), (6, 1, DOWN), (5, 4, DOWN), (3, 4, UP)]
+        for i, j, k in sequence:
+            c = ApplyMethod(groups[i].next_to,
+                            groups[j], k, {"buff": .3})
+            first_position = groups[i].get_center() - np.array([-.5, 0, 0])
+            second_position = groups[j].get_center() - np.array([-.5, 0, 0])
+            dots = VGroup(*[Dot(point=i)
+                            for i in [first_position, second_position]])
+            dot_animation = ShowCreationThenDestruction(dots)
+            teams_animations.add(c)
+            dots_animations.add(dot_animation)
+        self.play(*teams_animations, *dots_animations)
 
 
 class Test(Scene):
