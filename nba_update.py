@@ -29,6 +29,34 @@ REGULAR_SEASON_WEST = {
 }
 
 
+class TwoTipsBrokenLine(VMobject):
+    """An object consisting of three lines:
+
+    - line from start to end;
+
+    - line from start to start + direction * break_length
+
+    - line from end to end + direction * break_length
+    """
+    CONFIG = {
+        "line_kwargs": {
+            "color": WHITE,
+            "stroke_width": 4,
+        },
+    }
+
+    def __init__(self, start, end, break_length=1, direction=RIGHT, **kwargs):
+        VMobject.__init__(self, **kwargs)
+        long_line = Line(start, end, **self.line_kwargs)
+        first_end = start + break_length * direction
+        second_end = end + break_length * direction
+        first_tip_line = Line(start, first_end, **self.line_kwargs)
+        second_tip_line = Line(end, second_end, **self.line_kwargs)
+        first_tip_line.add_tip(tip_length=break_length / 5)
+        second_tip_line.add_tip(tip_length=break_length / 5)
+        self.add(long_line, first_tip_line, second_tip_line)
+
+
 class Conference:
     """A holder object for a conference (teams, W/L)"""
 
@@ -46,7 +74,7 @@ class Conference:
         self.losses_raw = []
 
     def convert(self):
-        """This function is used to reverse the properties of the class, it 
+        """This function is used to reverse the properties of the class, it
         adresses an issue where the objects are displayed in the opposite order
         """
         self.teams.reverse()
@@ -156,6 +184,16 @@ class RankingScene(Scene):
         self.west.wins.set_xy(x_west + 1, y_conf)
         self.west.losses.set_xy(x_west + 2, y_conf)
 
+        # Teams ranking (1-8)
+        texts = [Text(str(i) + ".", **self.numbers_args).scale(.4)
+                 for i in range(1, 9)]
+        rankings_east = VGroup(*texts)
+        rankings_east.set_xy(x_east - .5, 2.02)
+        rankings_west = rankings_east.copy()
+        rankings_west.set_x(x_west - .5)
+        rankings_east.arrange_submobjects(DOWN, False, False, buff=.5)
+        rankings_west.arrange_submobjects(DOWN, False, False, buff=.5)
+
         # Wins/losses title (W and L)
         y_titles = 2.8
         wins_title_east = Text("W", **self.numbers_args).scale(.45)
@@ -174,6 +212,18 @@ class RankingScene(Scene):
         self.play(self.west.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
         self.play(FadeInFrom(wins_losses, direction=2 * UP))
+        # self.play(LaggedStart(*rankings_east_animation,
+        #                       run_time=4, rate_function=rush_into))
+
+        b = [AnimationGroup(
+            Animation(Mobject(), run_time=i),  # <- This is a pause
+            FadeIn(rankings_east[i]), lag_ratio=.5, rate_function=rush_from
+        ) for i in range(8)]
+        a = [AnimationGroup(
+            Animation(Mobject(), run_time=i),  # <- This is a pause
+            FadeIn(rankings_west[i]), lag_ratio=.5, rate_function=rush_from
+        ) for i in range(8)]
+        self.play(*a, *b)
 
     def animate_numbers(self, conf):
         """Animate wins/losses numbers from 0 to their actual values
@@ -242,22 +292,15 @@ class RankingScene(Scene):
 class Test(Scene):
 
     def construct(self):
-        t = Text("dv ", font="Roboto Light")
-        rr = Text(" dd", font="Roboto Light")
-        t.set_x(4)
-        rr.set_x(2)
-        v = VGroup(t, rr)
+        test_line = TwoTipsBrokenLine(
+            3 * np.ones(3), 3 * RIGHT, break_length=1)
         alpha = ValueTracker(0)
 
-        def updater(g):
-            for i in g:
-                x, y, z = i.get_center()
-
-                i.become(
-                    Text(str(int(alpha.get_value() * 20)),
-                         font="Roboto Light", color=BLACK).set_xy(x, y)
-                )
-        v.add_updater(updater)
-        v.arrange_submobjects(RIGHT, False, True, buff=2)
-        self.add(v)
+        test_line.add_updater(lambda m: m.become(
+            TwoTipsBrokenLine(np.ones(3), RIGHT,
+                              break_length=alpha.get_value())
+        )
+        )
+        self.add(test_line)
         self.play(alpha.increment_value, 1)
+#        self.play(ShowCreation(test_line))
