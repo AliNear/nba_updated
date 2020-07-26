@@ -302,24 +302,67 @@ class RankingScene(Scene):
 
     def rearrange_teams(self):
 
-        groups_east = Group()
-        groups_west = Group()
+        self.groups_east = Group()
+        self.groups_west = Group()
         for i in range(8):
             east_line = Group(self.rankings_east[i], self.east.teams[i],
                               self.east.wins[i], self.east.losses[i])
             west_line = Group(self.rankings_west[i], self.west.teams[i],
                               self.west.wins[i], self.east.losses[i])
-            groups_east.add(east_line)
-            groups_west.add(west_line)
+            self.groups_east.add(east_line)
+            self.groups_west.add(west_line)
         teams_animations = VGroup()
         sequence = [(0, 7, DOWN), (6, 1, DOWN), (5, 4, DOWN), (3, 4, UP)]
         for i, j, k in sequence:
-            e = ApplyMethod(groups_east[i].next_to,
-                            groups_east[j], k, {"buff": .3})
-            w = ApplyMethod(groups_west[i].next_to,
-                            groups_west[j], k, buff=.3)
+            e = ApplyMethod(self.groups_east[i].next_to,
+                            self.groups_east[j], k, {"buff": .3})
+            w = ApplyMethod(self.groups_west[i].next_to,
+                            self.groups_west[j], k, buff=.3)
             teams_animations.add(e, w)
         self.play(*teams_animations)
+
+
+class PlayoffsScene(RankingScene):
+    """A scene that shows how the playoffs games are played
+    """
+
+    def construct(self):
+        self.prepare()
+        self.add_teams()
+        self.setup_conferences()
+        self.arrange_objects()
+        self.add_all()
+        self.rearrange_teams()
+        self.test()
+
+    def arrange_objects(self):
+        self.east.teams.arrange_submobjects(
+            UP, False, False, buff=.3)
+        self.west.teams.arrange_submobjects(
+            UP, False, False, buff=.3)
+        self.east.wins.arrange_submobjects(
+            UP, False, False, buff=.52)
+        self.west.wins.arrange_submobjects(
+            UP, False, False, buff=.52)
+        self.east.losses.arrange_submobjects(
+            UP, False, False, buff=.52)
+        self.west.losses.arrange_submobjects(
+            UP, False, False, buff=.52)
+
+    def add_all(self):
+        self.add(self.background, self.east_west_confs, self.playoffs)
+        self.add(self.east.teams)
+        self.add(self.west.teams)
+        self.add(self.rankings_east, self.rankings_west)
+        self.add(self.wins_losses)
+
+    def test(self):
+        print(self.get_mobjects())
+        # self.remove(*self.get_mobjects()[24:])
+        for i in range(8):
+            self.remove(*self.groups_east[i][2:])
+            self.remove(*self.groups_west[i][2:])
+        self.remove(self.wins_losses)
 
 
 class Test(Scene):
