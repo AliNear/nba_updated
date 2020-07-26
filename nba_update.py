@@ -117,9 +117,11 @@ class RankingScene(Scene):
         self.draw_foundation()
         self.add_teams()
         self.setup_conferences()
+        self.animate_conferences()
         self.animate_numbers(self.east)
         self.animate_numbers(self.west)
         self.animate_versus()
+        self.rearrange_teams()
 
     def prepare(self):
         """Adding background to the scene and other elements + variable
@@ -141,8 +143,8 @@ class RankingScene(Scene):
         east_icon.move_to(box_east)
         west_icon.move_to(box_west)
         box_playoffs = Rectangle(fill_color=WHITE, fill_opacity=1,
-                                 width=2, height=.6).set_xy(0, 3.5)
-        playoffs = Avatar(ASSETS_PATH + "playoffs.png", 0, 3.5, .35)
+                                 width=2, height=.4).set_xy(0, 3.5)
+        playoffs = Avatar(ASSETS_PATH + "nba-playoffs-2.png", 0, 3.5, .15)
         self.playoffs = Group(box_playoffs, playoffs)
 
     def draw_foundation(self):
@@ -207,15 +209,17 @@ class RankingScene(Scene):
         wins_title_west = wins_title_east.copy().set_x(x_west + 1)
         losses_title_west = losses_title_east.copy().set_x(x_west + 2)
 
-        wins_losses = VGroup(wins_title_east, losses_title_east,
-                             wins_title_west, losses_title_west)
+        self.wins_losses = VGroup(wins_title_east, losses_title_east,
+                                  wins_title_west, losses_title_west)
+
+    def animate_conferences(self):
 
         # Animate the whole thing
         self.play(self.east.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
         self.play(self.west.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
-        self.play(FadeInFrom(wins_losses, direction=2 * UP))
+        self.play(FadeInFrom(self.wins_losses, direction=2 * UP))
 
         b = [AnimationGroup(
             Animation(Mobject(), run_time=i),
@@ -227,7 +231,7 @@ class RankingScene(Scene):
         ) for i in range(8)]
         self.play(*a, *b)
 
-    def animate_numbers(self, conf):
+    def animate_numbers(self, conf, animation_time=2):
         """Animate wins/losses numbers from 0 to their actual values
         Parameters
         ----------
@@ -264,13 +268,12 @@ class RankingScene(Scene):
         conf.wins.add_updater(updater_wins)
         self.add(conf.wins)
 
-        self.play(alpha.increment_value, 1)
+        self.play(alpha.increment_value, 1, run_time=animation_time)
         self.wait()
 
     def animate_versus(self):
         """Animation of the confrontation between teams (1-8, 2-7, ...)"""
         alpha = ValueTracker(0)
-        DiscreteGraphScene
         amount_x = np.array([1, 0, 0])
         amount_y = np.array([0, .8, 0])
         start_east = np.array([-5.82, 2.05, 0]) - amount_x
@@ -294,36 +297,44 @@ class RankingScene(Scene):
                       TwoTipsBrokenLine(new_start_west, new_end_west))
             self.wait(.5)
 
-        self.play(FadOut(versus_line_east), FadeOut(versus_line_west))
+        self.play(FadeOut(versus_line_east), FadeOut(versus_line_west))
+        self.wait()
 
-        groups = Group()
+    def rearrange_teams(self):
 
+        groups_east = Group()
+        groups_west = Group()
         for i in range(8):
-            v = Group(self.rankings_east[i], self.east.teams[i],
-                      self.east.wins[i], self.east.losses[i])
-            groups.add(v)
+            east_line = Group(self.rankings_east[i], self.east.teams[i],
+                              self.east.wins[i], self.east.losses[i])
+            west_line = Group(self.rankings_west[i], self.west.teams[i],
+                              self.west.wins[i], self.east.losses[i])
+            groups_east.add(east_line)
+            groups_west.add(west_line)
         teams_animations = VGroup()
         sequence = [(0, 7, DOWN), (6, 1, DOWN), (5, 4, DOWN), (3, 4, UP)]
         for i, j, k in sequence:
-            c = ApplyMethod(groups[i].next_to,
-                            groups[j], k, {"buff": .3})
-
-            teams_animations.add(c)
+            e = ApplyMethod(groups_east[i].next_to,
+                            groups_east[j], k, {"buff": .3})
+            w = ApplyMethod(groups_west[i].next_to,
+                            groups_west[j], k, buff=.3)
+            teams_animations.add(e, w)
         self.play(*teams_animations)
 
 
 class Test(Scene):
 
     def construct(self):
-        test_line = TwoTipsBrokenLine(
-            3 * np.ones(3), 3 * RIGHT, break_length=1)
-        alpha = ValueTracker(0)
+        # test_line = TwoTipsBrokenLine(
+        #     3 * np.ones(3), 3 * RIGHT, break_length=1)
+        # alpha = ValueTracker(0)
 
-        test_line.add_updater(lambda m: m.become(
-            TwoTipsBrokenLine(np.ones(3), RIGHT,
-                              break_length=alpha.get_value())
-        )
-        )
-        self.add(test_line)
-        self.play(alpha.increment_value, 1)
-#        self.play(ShowCreation(test_line))
+        # test_line.add_updater(lambda m: m.become(
+        #     TwoTipsBrokenLine(np.ones(3), RIGHT,
+        #                       break_length=alpha.get_value())
+        # )
+        # )
+        # self.add(test_line)
+        # self.play(alpha.increment_value, 1)
+        # self.play(ShowCreation(test_line))
+        self.testing()
