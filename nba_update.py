@@ -147,9 +147,12 @@ class RankingScene(Scene):
 
     def draw_foundation(self):
         """Animation of the scene foundations (bg, title, etc ...)"""
-        self.play(FadeInFrom(self.background, direction=-7 * UP))
-        self.play(FadeInFrom(self.playoffs, direction=UP))
-        self.play(FadeInFrom(self.east_west_confs, direction=3 * UP))
+        self.play(FadeInFrom(self.background, direction=-
+                             7 * UP, rate_function=lingering))
+        self.play(FadeInFrom(self.playoffs,
+                             direction=UP, rate_function=rush_into))
+        self.play(FadeInFrom(self.east_west_confs,
+                             direction=3 * UP, rate_function=rush_into))
 
     def add_teams(self):
         """Adding the teams (with W/L) to the Class"""
@@ -186,13 +189,14 @@ class RankingScene(Scene):
 
         # Teams ranking (1-8)
         texts = [Text(str(i) + ".", **self.numbers_args).scale(.4)
-                 for i in range(1, 9)]
-        rankings_east = VGroup(*texts)
-        rankings_east.set_xy(x_east - .5, 2.02)
-        rankings_west = rankings_east.copy()
-        rankings_west.set_x(x_west - .5)
-        rankings_east.arrange_submobjects(DOWN, False, False, buff=.5)
-        rankings_west.arrange_submobjects(DOWN, False, False, buff=.5)
+                 for i in range(8, 0, -1)]
+
+        self.rankings_east = VGroup(*texts)
+        self.rankings_east.set_xy(x_east - .5, y_conf)  # 2.02
+        self.rankings_west = self.rankings_east.copy()
+        self.rankings_west.set_x(x_west - .5)
+        self.rankings_east.arrange_submobjects(UP, False, False, buff=.5)
+        self.rankings_west.arrange_submobjects(UP, False, False, buff=.5)
 
         # Wins/losses title (W and L)
         y_titles = 2.8
@@ -212,16 +216,14 @@ class RankingScene(Scene):
         self.play(self.west.teams.arrange_submobjects,
                   UP, False, False, {"buff": .3})
         self.play(FadeInFrom(wins_losses, direction=2 * UP))
-        # self.play(LaggedStart(*rankings_east_animation,
-        #                       run_time=4, rate_function=rush_into))
 
         b = [AnimationGroup(
-            Animation(Mobject(), run_time=i),  # <- This is a pause
-            FadeIn(rankings_east[i]), lag_ratio=.5, rate_function=rush_from
+            Animation(Mobject(), run_time=i),
+            FadeIn(self.rankings_east[i]), lag_ratio=.5, rate_function=rush_from
         ) for i in range(8)]
         a = [AnimationGroup(
-            Animation(Mobject(), run_time=i),  # <- This is a pause
-            FadeIn(rankings_west[i]), lag_ratio=.5, rate_function=rush_from
+            Animation(Mobject(), run_time=i),
+            FadeIn(self.rankings_west[i]), lag_ratio=.5, rate_function=rush_from
         ) for i in range(8)]
         self.play(*a, *b)
 
@@ -267,26 +269,47 @@ class RankingScene(Scene):
 
     def animate_versus(self):
         """Animation of the confrontation between teams (1-8, 2-7, ...)"""
+        alpha = ValueTracker(0)
+        DiscreteGraphScene
+        amount_x = np.array([1, 0, 0])
+        amount_y = np.array([0, .8, 0])
+        start_east = np.array([-5.82, 2.05, 0]) - amount_x
+        start_west = np.array([1.26, 2.05, 0]) - amount_x
+        end_east = np.array([-5.82, -3.47, 0]) - amount_x
+        end_west = np.array([1.26, -3.47, 0]) - amount_x
+
+        versus_line_east = TwoTipsBrokenLine(start_east, end_east)
+        versus_line_west = TwoTipsBrokenLine(start_west, end_west)
+
+        self.add(versus_line_east, versus_line_west)
+        for i in range(4):
+            new_start_east = start_east - i * amount_y
+            new_end_east = end_east + i * amount_y
+            new_start_west = start_west - i * amount_y
+            new_end_west = end_west + i * amount_y
+
+            self.play(versus_line_east.become,
+                      TwoTipsBrokenLine(new_start_east, new_end_east),
+                      versus_line_west.become,
+                      TwoTipsBrokenLine(new_start_west, new_end_west))
+            self.wait(.5)
+
+        self.play(FadOut(versus_line_east), FadeOut(versus_line_west))
 
         groups = Group()
+
         for i in range(8):
-            v = Group(self.east.teams[i],
+            v = Group(self.rankings_east[i], self.east.teams[i],
                       self.east.wins[i], self.east.losses[i])
             groups.add(v)
         teams_animations = VGroup()
-        dots_animations = VGroup()
         sequence = [(0, 7, DOWN), (6, 1, DOWN), (5, 4, DOWN), (3, 4, UP)]
         for i, j, k in sequence:
             c = ApplyMethod(groups[i].next_to,
                             groups[j], k, {"buff": .3})
-            first_position = groups[i].get_center() - np.array([-.5, 0, 0])
-            second_position = groups[j].get_center() - np.array([-.5, 0, 0])
-            dots = VGroup(*[Dot(point=i)
-                            for i in [first_position, second_position]])
-            dot_animation = ShowCreationThenDestruction(dots)
+
             teams_animations.add(c)
-            dots_animations.add(dot_animation)
-        self.play(*teams_animations, *dots_animations)
+        self.play(*teams_animations)
 
 
 class Test(Scene):
