@@ -322,18 +322,18 @@ class RankingScene(Scene):
         self.play(*teams_animations)
 
 
-class PlayoffsScene(RankingScene):
+class BlankNBAScene(RankingScene):
     """A scene that shows how the playoffs games are played
     """
 
-    def construct(self):
+    def setup(self):
         self.prepare()
         self.add_teams()
         self.setup_conferences()
         self.arrange_objects()
         self.add_all()
         self.rearrange_teams()
-        self.test()
+        self.remove_unnecessary_mobjects()
 
     def arrange_objects(self):
         self.east.teams.arrange_submobjects(
@@ -356,13 +356,19 @@ class PlayoffsScene(RankingScene):
         self.add(self.rankings_east, self.rankings_west)
         self.add(self.wins_losses)
 
-    def test(self):
-        print(self.get_mobjects())
-        # self.remove(*self.get_mobjects()[24:])
+    def remove_unnecessary_mobjects(self):
         for i in range(8):
+            self.remove(*self.groups_east[i][0])
+            self.remove(*self.groups_west[i][0])
             self.remove(*self.groups_east[i][2:])
             self.remove(*self.groups_west[i][2:])
         self.remove(self.wins_losses)
+
+
+class PlayoffsScene(BlankNBAScene):
+
+    def construct(self):
+        self.play(FadeIn(Circle()))
 
 
 class Test(Scene):
