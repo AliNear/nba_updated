@@ -103,7 +103,7 @@ class TwoRects(VMobject):
         self.add(east_rect, west_rect)
 
 
-class RankingScene(Scene):
+class RankingScene(MovingCameraScene):
     """A scene showing frachise ranking in bothe conferences"""
     CONFIG = {
         "numbers_args": {
@@ -111,6 +111,9 @@ class RankingScene(Scene):
             "color": WHITE,
         }
     }
+
+    def __init__(self, **kwargs):
+        MovingCameraScene.__init__(self, **kwargs)
 
     def construct(self):
         self.prepare()
@@ -138,7 +141,7 @@ class RankingScene(Scene):
         east_icon = Avatar(ASSETS_PATH + "east0.png", 0, 0, .3)
         west_icon = Avatar(ASSETS_PATH + "west.png", 0, 0, .3)
 
-        self.east_west_confs = Group(box_east, box_west, east_icon, west_icon)
+        self.east_west_confs = Group(box_east, east_icon, box_west, west_icon)
 
         east_icon.move_to(box_east)
         west_icon.move_to(box_west)
@@ -368,7 +371,44 @@ class BlankNBAScene(RankingScene):
 class PlayoffsScene(BlankNBAScene):
 
     def construct(self):
-        self.play(FadeIn(Circle()))
+        self.reorganize_teams()
+        self.move_conferences_names()
+        self.to_playoffs_positions()
+
+    def reorganize_teams(self):
+        # indexes are used to reorganize the teams (due to previous movements)
+        self.indexes = [7, 0, 3, 4, 5, 2, 1, 6]
+        new_group_east = Group()
+        new_group_west = Group()
+
+        for i in range(8):
+            new_group_east.add(self.east.teams[self.indexes[i]])
+            new_group_west.add(self.west.teams[self.indexes[i]])
+
+        self.east.teams = new_group_east
+        self.west.teams = new_group_west
+
+    def move_conferences_names(self):
+        east_bloc = self.east_west_confs[:2]
+        west_bloc = self.east_west_confs[2:]
+        self.play(east_bloc.shift, 3 * RIGHT,
+                  west_bloc.shift, 3 * LEFT)
+
+    def to_playoffs_positions(self):
+        matches_east = Group()
+        matches_west = Group()
+        for i in [0, 2, 4, 6]:
+            match_east = Group(self.east.teams[i:i + 2])
+            matches_east.add(match_east)
+            match_west = Group(self.west.teams[i:i + 2])
+            matches_west.add(match_west)
+
+        self.play(matches_east.shift, 1.33 * UP + LEFT)
+        self.play(matches_west.shift, 1.33 * UP + 4 * RIGHT)
+        self.play(matches_east.arrange_submobjects,
+                  DOWN, False, False, {"buff": .7},
+                  matches_west.arrange_submobjects,
+                  DOWN, False, False, {"buff": .7})
 
 
 class Test(Scene):
