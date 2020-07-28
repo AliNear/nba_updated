@@ -103,6 +103,31 @@ class TwoRects(VMobject):
         self.add(east_rect, west_rect)
 
 
+class VersusLines(VMobject):
+    CONFIG = {
+        "line_kwargs": {
+            "color": WHITE,
+            "stroke_width": 3,
+        },
+        "lines_length": .7,
+        "merged_line_length": .5
+
+    }
+
+    def __init__(self, first_side, second_side, direction=RIGHT, **kwargs):
+        VMobject.__init__(self, **kwargs)
+        length = self.lines_length * direction
+        main_lines = [Line(i, i + length, **self.line_kwargs)
+                      for i in (first_side, second_side)]
+        vertical_line = Line(first_side + length,
+                             second_side + length, **self.line_kwargs)
+        first_point = (first_side + second_side + 2 * length) / 2
+        self.last_point = first_point + direction * self.merged_line_length
+        merged_line = Line(first_point, self.last_point, **self.line_kwargs)
+
+        self.add(*main_lines, vertical_line, merged_line)
+
+
 class RankingScene(MovingCameraScene):
     """A scene showing frachise ranking in bothe conferences"""
     CONFIG = {
@@ -374,6 +399,7 @@ class PlayoffsScene(BlankNBAScene):
         self.reorganize_teams()
         self.move_conferences_names()
         self.to_playoffs_positions()
+        self.start_versus()
 
     def reorganize_teams(self):
         # indexes are used to reorganize the teams (due to previous movements)
@@ -391,39 +417,51 @@ class PlayoffsScene(BlankNBAScene):
     def move_conferences_names(self):
         east_bloc = self.east_west_confs[:2]
         west_bloc = self.east_west_confs[2:]
-        self.play(east_bloc.shift, 3 * RIGHT,
-                  west_bloc.shift, 3 * LEFT)
+        self.play(east_bloc.shift, 4 * RIGHT,
+                  west_bloc.shift, 4 * LEFT)
 
     def to_playoffs_positions(self):
-        matches_east = Group()
-        matches_west = Group()
+        self.matches_east = Group()
+        self.matches_west = Group()
         for i in [0, 2, 4, 6]:
             match_east = Group(self.east.teams[i:i + 2])
-            matches_east.add(match_east)
+            self.matches_east.add(match_east)
             match_west = Group(self.west.teams[i:i + 2])
-            matches_west.add(match_west)
+            self.matches_west.add(match_west)
 
-        self.play(matches_east.shift, 1.33 * UP + LEFT)
-        self.play(matches_west.shift, 1.33 * UP + 4 * RIGHT)
-        self.play(matches_east.arrange_submobjects,
+        self.play(self.matches_east.shift, 1.33 * UP + LEFT)
+        self.play(self.matches_west.shift, 1.33 * UP + 4 * RIGHT)
+        self.play(self.matches_east.arrange_submobjects,
                   DOWN, False, False, {"buff": .7},
-                  matches_west.arrange_submobjects,
+                  self.matches_west.arrange_submobjects,
                   DOWN, False, False, {"buff": .7})
+
+    def start_versus(self):
+        bias = .4 * RIGHT
+        res_teams = Group()
+        coeff = 0
+        for i in self.matches_east:
+            first, second = i[0]
+            start, end = first.get_center() + bias, second.get_center() + bias
+            versus_line = VersusLines(start + .4 * bias, end)
+            last_point = versus_line.last_point
+            self.play(ShowCreation(versus_line))
+            first_copy = first.copy()
+            coeff = 1 - coeff
+            self.play(first_copy.move_to, last_point +
+                      (.8 + .5 * coeff) * bias)
+            res_teams.add(first_copy)
+        for i in (0, 2):
+            start, end = res_teams[i].get_center(
+            ) + bias, res_teams[i + 1].get_center() + bias
+
+            versus_line = VersusLines(start + .4 * bias, end)
+            self.play(ShowCreation(versus_line))
 
 
 class Test(Scene):
 
     def construct(self):
-        # test_line = TwoTipsBrokenLine(
-        #     3 * np.ones(3), 3 * RIGHT, break_length=1)
-        # alpha = ValueTracker(0)
-
-        # test_line.add_updater(lambda m: m.become(
-        #     TwoTipsBrokenLine(np.ones(3), RIGHT,
-        #                       break_length=alpha.get_value())
-        # )
-        # )
-        # self.add(test_line)
-        # self.play(alpha.increment_value, 1)
-        # self.play(ShowCreation(test_line))
-        self.testing()
+        second = np.array([1, -2, 0])
+        obj = VersusLines(RIGHT, second)
+        self.play(ShowCreation(obj))
