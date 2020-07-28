@@ -20,8 +20,8 @@ REGULAR_SEASON_EAST = {
 REGULAR_SEASON_WEST = {
     "GoldenState": (72, 10),
     "Denver_Nuggets": (54, 28),
-    "Houston_Rockets": (53, 29),
     "PortlandTrail": (53, 29),
+    "Houston_Rockets": (53, 29),
     "UtahJazz": (50, 32),
     "Oklahoma_City_Thunder": (49, 33),
     "San_Antonio_Spurs": (48, 34),
@@ -117,15 +117,15 @@ class VersusLines(VMobject):
     def __init__(self, first_side, second_side, direction=RIGHT, **kwargs):
         VMobject.__init__(self, **kwargs)
         length = self.lines_length * direction
-        main_lines = [Line(i, i + length, **self.line_kwargs)
-                      for i in (first_side, second_side)]
+        self.main_lines = [Line(i, i + length, **self.line_kwargs)
+                           for i in (first_side, second_side)]
         vertical_line = Line(first_side + length,
                              second_side + length, **self.line_kwargs)
         first_point = (first_side + second_side + 2 * length) / 2
         self.last_point = first_point + direction * self.merged_line_length
         merged_line = Line(first_point, self.last_point, **self.line_kwargs)
 
-        self.add(*main_lines, vertical_line, merged_line)
+        self.add(*self.main_lines, vertical_line, merged_line)
 
 
 class RankingScene(MovingCameraScene):
@@ -192,7 +192,8 @@ class RankingScene(MovingCameraScene):
 
         for i in zip(iter(REGULAR_SEASON_EAST), iter(REGULAR_SEASON_WEST)):
             east, west = i
-            imgs = [Avatar(TEAMS_PATH + n + ".png", 0, 0, .25) for n in i]
+            imgs = [Avatar(TEAMS_PATH + n + ".png", 0, 0, .25)
+                    for n in i]
 
             self.east.teams.append(imgs[0])
             self.west.teams.append(imgs[1])
@@ -201,6 +202,8 @@ class RankingScene(MovingCameraScene):
             self.east.losses_raw.append(REGULAR_SEASON_EAST[east][1])
             self.west.losses_raw.append(REGULAR_SEASON_WEST[west][1])
 
+        # This one to align the versus lines in a different scene (Denver icon is big)
+        self.west.teams[1].scale(.88)
         self.east.convert()
         self.west.convert()
 
@@ -329,6 +332,8 @@ class RankingScene(MovingCameraScene):
         self.wait()
 
     def rearrange_teams(self):
+        """Moving teams next to their opponents
+        """
 
         self.groups_east = Group()
         self.groups_west = Group()
@@ -402,6 +407,8 @@ class PlayoffsScene(BlankNBAScene):
         self.start_versus()
 
     def reorganize_teams(self):
+        """A team reorganization so that it will be usable with range indexes 
+        in future animations"""
         # indexes are used to reorganize the teams (due to previous movements)
         self.indexes = [7, 0, 3, 4, 5, 2, 1, 6]
         new_group_east = Group()
@@ -415,18 +422,22 @@ class PlayoffsScene(BlankNBAScene):
         self.west.teams = new_group_west
 
     def move_conferences_names(self):
+        """Moving confs to make space for latter animations"""
         east_bloc = self.east_west_confs[:2]
         west_bloc = self.east_west_confs[2:]
         self.play(east_bloc.shift, 4 * RIGHT,
                   west_bloc.shift, 4 * LEFT)
 
     def to_playoffs_positions(self):
+        """This creates and plays the animation consisting of moving from 
+        a ranking to 1 vs 1 matchups
+        """
         self.matches_east = Group()
         self.matches_west = Group()
         for i in [0, 2, 4, 6]:
             match_east = Group(self.east.teams[i:i + 2])
             self.matches_east.add(match_east)
-        for i in [0, 6, 4, 2]:
+        for i in [0, 2, 4, 6]:
             match_west = Group(self.west.teams[i:i + 2])
             self.matches_west.add(match_west)
 
@@ -438,8 +449,27 @@ class PlayoffsScene(BlankNBAScene):
                   DOWN, False, False, {"buff": .7})
 
     def versus_animation(self, teams, winners_list, direction=RIGHT):
+        """A function that create VersusLines between each two teams in a 
+        group object
+        Parameters
+        ----------
+        teams:`Group`
+            A Group containing teams Avatar object, it's a nested group (group 
+            of groups (2 teams in each subgroup)).
+        winners_list: `list`
+            A list of 1s and 0s o determine a winner in a two-teams group
+        direction: `np.array`.
+            an array for the direction of versus lines eg. RIGHT for the eastern
+            conference and LEFT for the western conference.
+        Returns
+        -------
+        res_teams: Group
+            A nested group containing the remaining teams (the winners).
 
+        """
+        # Distance from the Team image to the beginning of the line.
         bias = .4 * direction
+        # This will hold the return value
         res_teams = Group()
         faceoff = Group()
         for i in teams:
@@ -452,17 +482,25 @@ class PlayoffsScene(BlankNBAScene):
             winner_copy = winner.copy()
             self.play(winner_copy.move_to, last_point + .3 * direction)
             faceoff.add(winner_copy)
+        # This is for creating a group of two-teams subgroups
         for i in range(0, len(faceoff) // 2 + 1, 2):
             res_teams.add(Group(faceoff[i:i + 2]))
         return res_teams
 
     def start_versus(self):
+        """This is the main fonction for the playoffs series, we feed 
+        `versus_animation` with the necessary data (winners in each step and 
+        keeping a `Group` of remaining teams )
+        """
+        scores_west_first_round = [(4, 2), (4, 2), (4, 1), (4, 3)]
+        scores_east_first_round = [(4, 0), (0, 4), (4, 1), (1, 4)]
+
         next_round_east = [0, 1, 0, 1]
         semi_finals_east = [0, 1]
         winners_east = [next_round_east, semi_finals_east, [1]]
 
-        next_round_west = [1, 0, 1, 0]
-        semi_finals_west = [0, 1]
+        next_round_west = [0, 1, 0, 1]
+        semi_finals_west = [0, 0]
         winners_west = [next_round_west, semi_finals_west, [0]]
 
         next_teams_east = self.matches_east
@@ -481,4 +519,6 @@ class Test(Scene):
     def construct(self):
         second = np.array([1, -2, 0])
         obj = VersusLines(RIGHT, second)
-        self.play(ShowCreation(obj))
+        txt = Text("4", color=WHITE).scale(.3)
+        txt.next_to(obj.main_lines[0], UP, buff=.2)
+        self.play(ShowCreation(obj), FadeIn(txt))
