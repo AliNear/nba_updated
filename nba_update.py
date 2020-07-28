@@ -426,6 +426,7 @@ class PlayoffsScene(BlankNBAScene):
         for i in [0, 2, 4, 6]:
             match_east = Group(self.east.teams[i:i + 2])
             self.matches_east.add(match_east)
+        for i in [0, 6, 4, 2]:
             match_west = Group(self.west.teams[i:i + 2])
             self.matches_west.add(match_west)
 
@@ -436,27 +437,43 @@ class PlayoffsScene(BlankNBAScene):
                   self.matches_west.arrange_submobjects,
                   DOWN, False, False, {"buff": .7})
 
-    def start_versus(self):
-        bias = .4 * RIGHT
+    def versus_animation(self, teams, winners_list, direction=RIGHT):
+
+        bias = .4 * direction
         res_teams = Group()
-        coeff = 0
-        for i in self.matches_east:
+        faceoff = Group()
+        for i in teams:
             first, second = i[0]
             start, end = first.get_center() + bias, second.get_center() + bias
-            versus_line = VersusLines(start + .4 * bias, end)
+            versus_line = VersusLines(start, end, direction=direction)
             last_point = versus_line.last_point
             self.play(ShowCreation(versus_line))
-            first_copy = first.copy()
-            coeff = 1 - coeff
-            self.play(first_copy.move_to, last_point +
-                      (.8 + .5 * coeff) * bias)
-            res_teams.add(first_copy)
-        for i in (0, 2):
-            start, end = res_teams[i].get_center(
-            ) + bias, res_teams[i + 1].get_center() + bias
+            winner = i[0][winners_list.pop(0)]
+            winner_copy = winner.copy()
+            self.play(winner_copy.move_to, last_point + .3 * direction)
+            faceoff.add(winner_copy)
+        for i in range(0, len(faceoff) // 2 + 1, 2):
+            res_teams.add(Group(faceoff[i:i + 2]))
+        return res_teams
 
-            versus_line = VersusLines(start + .4 * bias, end)
-            self.play(ShowCreation(versus_line))
+    def start_versus(self):
+        next_round_east = [0, 1, 0, 1]
+        semi_finals_east = [0, 1]
+        winners_east = [next_round_east, semi_finals_east, [1]]
+
+        next_round_west = [1, 0, 1, 0]
+        semi_finals_west = [0, 1]
+        winners_west = [next_round_west, semi_finals_west, [0]]
+
+        next_teams_east = self.matches_east
+        for i in range(3):
+            next_teams_east = self.versus_animation(
+                next_teams_east, winners_east[i])
+
+        next_teams_west = self.matches_west
+        for i in range(3):
+            next_teams_west = self.versus_animation(
+                next_teams_west, winners_west[i], direction=LEFT)
 
 
 class Test(Scene):
