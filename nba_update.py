@@ -57,6 +57,44 @@ class TwoTipsBrokenLine(VMobject):
         self.add(long_line, first_tip_line, second_tip_line)
 
 
+class NumberAnimation(VMobject):
+    """A `Text` object that has an animation bound to a ValueTracker
+    """
+    CONFIG = {
+        "text_kwargs": {
+            "color": WHITE,
+            "font": "Bitter",
+        },
+        "scale_factor": .3,
+        "animation_length": .5
+
+    }
+
+    def __init__(self, target, next_to_object, **kwargs):
+        VMobject.__init__(self, **kwargs)
+        number = Text("0", **self.text_kwargs)
+        number.next_to(next_to_object, UP, buff=.15)
+        self.alpha = ValueTracker(0)
+        # number.add_updater(lambda m: m.become(
+        #     Text(str(int(self.alpha.get_value() * target)),
+        #          color=BLACK).next_to(next_to_object, UP, buff=.3)
+        # )
+        # )
+
+        def updater(t):
+            new_number = Text(
+                str(int(self.alpha.get_value() * target)), **self.text_kwargs)
+            new_number.scale(self.scale_factor)
+            new_number.next_to(next_to_object, UP, buff=.15)
+            t.become(new_number)
+
+        number.add_updater(updater)
+
+        self.add(number)
+        self.animation = ApplyMethod(
+            self.alpha.increment_value, 1, run_time=self.animation_length)
+
+
 class Conference:
     """A holder object for a conference (teams, W/L)"""
 
@@ -405,6 +443,7 @@ class PlayoffsScene(BlankNBAScene):
         self.move_conferences_names()
         self.to_playoffs_positions()
         self.start_versus()
+        self.finals_animation()
 
     def reorganize_teams(self):
         """A team reorganization so that it will be usable with range indexes 
@@ -448,7 +487,7 @@ class PlayoffsScene(BlankNBAScene):
                   self.matches_west.arrange_submobjects,
                   DOWN, False, False, {"buff": .7})
 
-    def versus_animation(self, teams, winners_list, direction=RIGHT):
+    def versus_animation(self, teams, winners_list, scores, direction=RIGHT, save=False):
         """A function that create VersusLines between each two teams in a 
         group object
         Parameters
@@ -477,7 +516,13 @@ class PlayoffsScene(BlankNBAScene):
             start, end = first.get_center() + bias, second.get_center() + bias
             versus_line = VersusLines(start, end, direction=direction)
             last_point = versus_line.last_point
+            # adding the scores
+            score = scores.pop(0)
+            scores_text = [NumberAnimation(
+                score[i], versus_line.main_lines[i]) for i in (0, 1)]
             self.play(ShowCreation(versus_line))
+            self.add(*scores_text)
+            self.play(scores_text[0].animation, scores_text[1].animation)
             winner = i[0][winners_list.pop(0)]
             winner_copy = winner.copy()
             self.play(winner_copy.move_to, last_point + .3 * direction)
@@ -485,6 +530,8 @@ class PlayoffsScene(BlankNBAScene):
         # This is for creating a group of two-teams subgroups
         for i in range(0, len(faceoff) // 2 + 1, 2):
             res_teams.add(Group(faceoff[i:i + 2]))
+        if save:
+            self.versus_lines.add(versus_line)
         return res_teams
 
     def start_versus(self):
@@ -492,8 +539,16 @@ class PlayoffsScene(BlankNBAScene):
         `versus_animation` with the necessary data (winners in each step and 
         keeping a `Group` of remaining teams )
         """
-        scores_west_first_round = [(4, 2), (4, 2), (4, 1), (4, 3)]
+        # Will be used to store the last versus lines (to remove them after)
+        self.versus_lines = VGroup()
+        scores_west_first_round = [(4, 2), (2, 4), (4, 1), (3, 4)]
         scores_east_first_round = [(4, 0), (0, 4), (4, 1), (1, 4)]
+        scores_west_second_round = [(4, 2), (4, 3)]
+        scores_east_second_round = [(4, 1), (3, 4)]
+        scores_west = [scores_west_first_round,
+                       scores_west_second_round, [(4, 0)]]
+        scores_east = [scores_east_first_round,
+                       scores_east_second_round, [(4, 2)]]
 
         next_round_east = [0, 1, 0, 1]
         semi_finals_east = [0, 1]
@@ -506,19 +561,59 @@ class PlayoffsScene(BlankNBAScene):
         next_teams_east = self.matches_east
         for i in range(3):
             next_teams_east = self.versus_animation(
-                next_teams_east, winners_east[i])
+                next_teams_east, winners_east[i], scores_east[i], save=(i == 2))
 
         next_teams_west = self.matches_west
         for i in range(3):
             next_teams_west = self.versus_animation(
-                next_teams_west, winners_west[i], direction=LEFT)
+                next_teams_west, winners_west[i], scores_west[i],
+                direction=LEFT, save=(i == 2))
+        self.final_east = next_teams_east[0][0]
+        self.final_west = next_teams_west[0][0]
+
+    def finals_animation(self):
+        finalists = Group(final_east, final_west)
+        x_center = .5
+        y_center = .0
+        self.final_west.set_x(x_center)
+        self.final_east.set_x(-x_center)
+        self.camera_frame = self.camera.frame
+        self.camera_frame.save_state()
+        self.play(
+            self.camera_frame.set_width, finalists.get_width() * 2,
+            self.camera_frame.move_to, finalists,
+            FadeOut(self.versus_lines)
+        )
+
+        self.wait()
+        finals_logo = Avatar(ASSETS_PATH + "finals_logo.png", 0, 0, .02)
+        self.play(
+            final_east.scale, .3,
+            final_west.scale, .3,
+
+        )
+        finalists = Group(final_east, final_west)
+        finals_box = Rectangle(width=.27, height=.1,
+                               fill_color=WHITE, fill_opacity=1)
+        finals_box.next_to(finalists, UP, buff=.4)
+        finals_logo.move_to(finals_box)
+
+        self.play(FadeIn(finals_box))
+        self.play(FadeIn(finals_logo))
+        self.wait()
+        # self.play(Restore(self.camera_frame))
 
 
 class Test(Scene):
 
     def construct(self):
-        second = np.array([1, -2, 0])
-        obj = VersusLines(RIGHT, second)
-        txt = Text("4", color=WHITE).scale(.3)
-        txt.next_to(obj.main_lines[0], UP, buff=.2)
-        self.play(ShowCreation(obj), FadeIn(txt))
+        # second = np.array([1, -2, 0])
+        # obj = VersusLines(RIGHT, second)
+        # txt = Text("4", color=WHITE).scale(.3)
+        # txt.next_to(obj.main_lines[0], UP, buff=.2)
+        # self.play(ShowCreation(obj), FadeIn(txt))
+        d = Dot(point=UP, color=RED)
+        num = NumberAnimation(4, d)
+        self.add(num, d)
+        self.play(num.animation)
+        self.wait()
