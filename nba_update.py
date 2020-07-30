@@ -133,12 +133,12 @@ class TwoRects(VMobject):
         points_left = [np.array([i, j, 0]) for i, j in points_left]
         points_right = [np.array([i, j, 0]) for i, j in points_right]
 
-        east_rect = Polygon(*points_left, fill_color="#1c3f87",
-                            fill_opacity=1, stroke_width=0)
+        self.east_rect = Polygon(*points_left, fill_color="#1c3f87",
+                                 fill_opacity=1, stroke_width=0)
 
-        west_rect = Polygon(*points_right, fill_color="#b8002c",
-                            fill_opacity=1, stroke_width=0)
-        self.add(east_rect, west_rect)
+        self.west_rect = Polygon(*points_right, fill_color="#b8002c",
+                                 fill_opacity=1, stroke_width=0)
+        self.add(self.east_rect, self.west_rect)
 
 
 class VersusLines(VMobject):
@@ -444,6 +444,7 @@ class PlayoffsScene(BlankNBAScene):
         self.to_playoffs_positions()
         self.start_versus()
         self.finals_animation()
+        self.victory_animation()
 
     def reorganize_teams(self):
         """A team reorganization so that it will be usable with range indexes 
@@ -608,12 +609,12 @@ class PlayoffsScene(BlankNBAScene):
 
         score_east_finalist.next_to(self.final_east, UP, buff=.2)
         score_west_finalist.next_to(self.final_west, UP, buff=.2)
-        games_texts_args = {
+        self.games_texts_args = {
             "color": WHITE,
             "font": "DDTW00-CondensedItalic",
         }
-        game_text = Text("GAME", **games_texts_args).scale(.2)
-        game_number = Text("1", **games_texts_args).scale(.2)
+        game_text = Text("GAME", **self.games_texts_args).scale(.2)
+        game_number = Text("1", **self.games_texts_args).scale(.2)
         game_text.next_to(finalists, DOWN, buff=.3)
         game_number.next_to(game_text, RIGHT, buff=.05)
         east_count = west_count = 0
@@ -637,7 +638,7 @@ class PlayoffsScene(BlankNBAScene):
             west_animation = score_text(west_count, "west")
             games_count += 1
             if games_count == 1:
-                game_number = Text("1", **games_texts_args).scale(.2)
+                game_number = Text("1", **self.games_texts_args).scale(.2)
                 game_number.next_to(game_text, RIGHT, buff=.05)
                 self.play(
                     east_animation,
@@ -647,15 +648,45 @@ class PlayoffsScene(BlankNBAScene):
                 )
             else:
                 new_number = Text(str(games_count), **
-                                  games_texts_args).scale(.2)
+                                  self.games_texts_args).scale(.2)
                 new_number.next_to(game_text, RIGHT, buff=.05)
                 self.play(
                     east_animation,
                     west_animation,
                     ApplyMethod(game_number.become, new_number)
                 )
+        # for the next animation
+        self.finalists = finalists
+        self.game = VGroup(game_number, game_text)
+        self.scores = VGroup(score_east_finalist, score_west_finalist)
+        self.finals_logobox = Group(finals_logo, finals_box)
+        self.wait()
 
-        # self.play(Restore(self.camera_frame))
+    def victory_animation(self):
+        self.finalists[0].plot_depth = 20
+        self.finalists[1].plot_depth = 3
+        self.game[0].plot_depth = 20
+        self.game[1].plot_depth = 20
+        self.finals_logobox[0].plot_depth = 20
+        self.finals_logobox[1].plot_depth = 20
+
+        self.scores[0].plot_depth = 20
+        self.scores[1].plot_depth = 20
+
+        self.background.east_rect.plot_depth = 10
+        self.background.west_rect.plot_depth = 2
+        cleaning_rect = Rectangle(width=14.2, height=8, fill_color="#1c3f87",
+                                  plot_depth=11, fill_opacity=1).set_xy(-7.1, 0)
+        champions = Text("NBA Champions", plot_depth=20, **
+                         self.games_texts_args).scale(.2)
+        champions.move_to(self.game)
+        self.add(cleaning_rect)
+        self.play(cleaning_rect.scale, 10,
+                  Transform(self.game, champions),
+                  self.finalists[0].move_to, np.zeros(3),
+                  FadeOut(self.scores),)
+        self.add(champions)
+        self.wait()
 
 
 class Test(Scene):
