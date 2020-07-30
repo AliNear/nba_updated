@@ -572,7 +572,7 @@ class PlayoffsScene(BlankNBAScene):
         self.final_west = next_teams_west[0][0]
 
     def finals_animation(self):
-        finalists = Group(final_east, final_west)
+        finalists = Group(self.final_east, self.final_west)
         x_center = .5
         y_center = .0
         self.final_west.set_x(x_center)
@@ -586,21 +586,75 @@ class PlayoffsScene(BlankNBAScene):
         )
 
         self.wait()
-        finals_logo = Avatar(ASSETS_PATH + "finals_logo.png", 0, 0, .02)
+        finals_logo = Avatar(ASSETS_PATH + "finals_logo.png", 0, 0, .04)
         self.play(
-            final_east.scale, .3,
-            final_west.scale, .3,
+            self.final_east.scale, .45,
+            self.final_west.scale, .45,
 
         )
-        finalists = Group(final_east, final_west)
-        finals_box = Rectangle(width=.27, height=.1,
+        finalists = Group(self.final_east, self.final_west)
+        finals_box = Rectangle(width=.54, height=.15,
                                fill_color=WHITE, fill_opacity=1)
-        finals_box.next_to(finalists, UP, buff=.4)
+        finals_box.next_to(finalists, UP, buff=.5)
         finals_logo.move_to(finals_box)
 
         self.play(FadeIn(finals_box))
         self.play(FadeIn(finals_logo))
         self.wait()
+
+        scenario = [(0, 1), (1, 0), (0, 1), (0, 1), (1, 0), (0, 1)]
+        score_east_finalist = Text("0", color=WHITE, font="Digital2").scale(.2)
+        score_west_finalist = Text("0", color=WHITE, font="Digital2").scale(.2)
+
+        score_east_finalist.next_to(self.final_east, UP, buff=.2)
+        score_west_finalist.next_to(self.final_west, UP, buff=.2)
+        games_texts_args = {
+            "color": WHITE,
+            "font": "DDTW00-CondensedItalic",
+        }
+        game_text = Text("GAME", **games_texts_args).scale(.2)
+        game_number = Text("1", **games_texts_args).scale(.2)
+        game_text.next_to(finalists, DOWN, buff=.3)
+        game_number.next_to(game_text, RIGHT, buff=.05)
+        east_count = west_count = 0
+
+        # A little helper function, x: score
+        def score_text(x, conference):
+            res_text = Text(str(x), color=WHITE, font="Digital2").scale(.2)
+            if conference == "east":
+                res_text.next_to(self.final_east, UP, buff=.2)
+                return ApplyMethod(score_east_finalist.become, res_text)
+            else:
+                res_text.next_to(self.final_west, UP, buff=.2)
+                return ApplyMethod(score_west_finalist.become, res_text)
+        games_count = 0
+        for i in scenario:
+            west, east = i
+            east_count += east
+            west_count += west
+
+            east_animation = score_text(east_count, "east")
+            west_animation = score_text(west_count, "west")
+            games_count += 1
+            if games_count == 1:
+                game_number = Text("1", **games_texts_args).scale(.2)
+                game_number.next_to(game_text, RIGHT, buff=.05)
+                self.play(
+                    east_animation,
+                    west_animation,
+                    Write(game_text),
+                    Write(game_number)
+                )
+            else:
+                new_number = Text(str(games_count), **
+                                  games_texts_args).scale(.2)
+                new_number.next_to(game_text, RIGHT, buff=.05)
+                self.play(
+                    east_animation,
+                    west_animation,
+                    ApplyMethod(game_number.become, new_number)
+                )
+
         # self.play(Restore(self.camera_frame))
 
 
@@ -612,8 +666,15 @@ class Test(Scene):
         # txt = Text("4", color=WHITE).scale(.3)
         # txt.next_to(obj.main_lines[0], UP, buff=.2)
         # self.play(ShowCreation(obj), FadeIn(txt))
-        d = Dot(point=UP, color=RED)
-        num = NumberAnimation(4, d)
-        self.add(num, d)
-        self.play(num.animation)
+        # d = Dot(point=UP, color=RED)
+        # num = NumberAnimation(4, d)
+        # self.add(num, d)
+        # self.play(num.animation)
+        # self.wait()
+        games_texts_args = {
+            "color": BLACK,
+            "font": "DDTW00-CondensedItalic",
+        }
+        game_text = Text("Game", **games_texts_args)
+        self.play(Write(game_text))
         self.wait()
