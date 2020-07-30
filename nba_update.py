@@ -677,7 +677,7 @@ class PlayoffsScene(BlankNBAScene):
         self.background.west_rect.plot_depth = 2
         cleaning_rect = Rectangle(width=14.2, height=8, fill_color="#1c3f87",
                                   plot_depth=11, fill_opacity=1).set_xy(-7.1, 0)
-        champions = Text("NBA Champions", plot_depth=20, **
+        champions = Text("NBA CHAMPIONS", plot_depth=20, **
                          self.games_texts_args).scale(.2)
         champions.move_to(self.game)
         self.add(cleaning_rect)
