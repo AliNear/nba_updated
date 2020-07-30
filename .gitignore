@@ -1,3 +1,5 @@
 **/assets/**
 .DS_Store
 **.pyc
+assets_nba_update.zip
+example.py
