@@ -609,14 +609,17 @@ class PlayoffsScene(BlankNBAScene):
 
         score_east_finalist.next_to(self.final_east, UP, buff=.2)
         score_west_finalist.next_to(self.final_west, UP, buff=.2)
+        font = "DDTW00-CondensedBoldItalic"
         self.games_texts_args = {
             "color": WHITE,
-            "font": "DDTW00-CondensedItalic",
+            "font": font,
         }
         game_text = Text("GAME", **self.games_texts_args).scale(.2)
-        game_number = Text("1", **self.games_texts_args).scale(.2)
-        game_text.next_to(finalists, DOWN, buff=.3)
-        game_number.next_to(game_text, RIGHT, buff=.05)
+        game_text.next_to(finalists, UP, buff=.15)
+        game_number_box = Rectangle(
+            width=.2, height=.2, fill_color=WHITE, fill_opacity=1)
+
+        game_number_box.next_to(game_text, DOWN, buff=.06)
         east_count = west_count = 0
 
         # A little helper function, x: score
@@ -638,18 +641,19 @@ class PlayoffsScene(BlankNBAScene):
             west_animation = score_text(west_count, "west")
             games_count += 1
             if games_count == 1:
-                game_number = Text("1", **self.games_texts_args).scale(.2)
-                game_number.next_to(game_text, RIGHT, buff=.05)
+                game_number = Text("1", color="#403c3c", font=font).scale(.2)
+                game_number.move_to(game_number_box)
                 self.play(
                     east_animation,
                     west_animation,
                     Write(game_text),
-                    Write(game_number)
+                    FadeIn(game_number_box),
+                    Write(game_number),
                 )
             else:
-                new_number = Text(str(games_count), **
-                                  self.games_texts_args).scale(.2)
-                new_number.next_to(game_text, RIGHT, buff=.05)
+                new_number = Text(str(games_count),
+                                  color="#403c3c", font=font).scale(.2)
+                new_number.move_to(game_number_box)
                 self.play(
                     east_animation,
                     west_animation,
@@ -679,6 +683,9 @@ class PlayoffsScene(BlankNBAScene):
                                   plot_depth=11, fill_opacity=1).set_xy(-7.1, 0)
         champions = Text("NBA CHAMPIONS", plot_depth=20, **
                          self.games_texts_args).scale(.2)
+        champions_year = Text("2019", plot_depth=20, color="#b8002c",
+                              font="DDTW00-CondensedBoldItalic").scale(.2)
+        champions_year.next_to(self.finalists, DOWN, buff=.3)
         champions.move_to(self.game)
         self.add(cleaning_rect)
         self.play(cleaning_rect.scale, 10,
@@ -686,6 +693,7 @@ class PlayoffsScene(BlankNBAScene):
                   self.finalists[0].move_to, np.zeros(3),
                   FadeOut(self.scores),)
         self.add(champions)
+        self.play(Write(champions_year))
         self.wait()
 
 
