@@ -1,7 +1,18 @@
 from manimlib.imports import *
 import os
 import re
+
 ASSETS_PATH = os.getcwd() + '/projects/nba_update_project/assets/'
+
+EUROPE = [
+    "BE", "GR", "LT", "PT",
+    "BG", "ES", "LU", "RO",
+    "CZ", "FR", "HU", "SI",
+    "DK", "HR", "MT", "SK",
+    "DE", "IT", "NL", "FI",
+    "EE", "CY", "AT", "SE",
+    "IE", "LV", "PL",
+]
 
 
 def get_index_world():
@@ -32,7 +43,7 @@ class MotivationScene(MovingCameraScene):
         self.world_map = AvatarSVG(ASSETS_PATH + "main_world.svg")
         self.world_map.scale(2)
         self.play(ShowCreation(self.world_map))
-        self.play(self.world_map.color_country, "DZ")
+        self.play(self.world_map.color_countries, EUROPE)
         self.wait()
 
     def draw_map(self):
@@ -57,14 +68,13 @@ class AvatarSVG(SVGMobject):
         "fill_opacity": 1.0,
         "height": 3,
         "close_new_points": True,
-        "stroke_width": 1,
+        "stroke_width": .6,
         "stroke_color": BLACK,
     }
 
-    def __init__(self, file_name="dz.svg", **kwargs):
+    def __init__(self, svg_file="dz.svg", **kwargs):
         self.parts_named = False
-        self.svg_file = file_name
-        SVGMobject.__init__(self, file_name=self.svg_file, **kwargs)
+        SVGMobject.__init__(self, file_name=svg_file, **kwargs)
         self.countries = get_index_world()
 
     def name_parts(self):
@@ -77,14 +87,24 @@ class AvatarSVG(SVGMobject):
         return copy_mobject
 
     def init_colors(self):
+        """color initialization for the svg object, can set colors of 
+        submobjects too.
+        Note: stroke should be set for each submobjet.
+
+        """
         SVGMobject.init_colors(self)
         if not self.parts_named:
             self.name_parts()
         for i in self.parts:
-            # i.set_color(RED)
-            self.set_opacity(1)
+            i.set_color("#f2f2f2")
+            i.set_stroke(color=self.stroke_color, width=self.stroke_width)
+            self.set_opacity(.5)
         return self
 
     def color_country(self, country_code, color=RED):
         country_index = self.countries[country_code]
         self.parts[country_index].set_color(color)
+
+    def color_countries(self, countries_codes, color=RED):
+        for i in countries_codes:
+            self.color_country(i, color=color)
