@@ -1,8 +1,10 @@
 from manimlib.imports import *
 import os
 import re
+from projects.project_one.custom_mobjects import *
 
 ASSETS_PATH = os.getcwd() + '/projects/nba_update_project/assets/'
+LOADING_COLOR = "#efeff0"
 
 EUROPE = [
     "BE", "GR", "LT", "PT",
@@ -14,6 +16,17 @@ EUROPE = [
     "IE", "LV", "PL",
 ]
 
+FOUR_NATIONS = ["FR", "IT", "ES", "GB"]
+
+def create_line_table(text):
+    circle = Circle(radius=.15, fill_color=LOADING_COLOR, fill_opacity=1, stroke_width=0)
+    circle.set_xy(-.85, 1.75)
+    stats_rect = Rectangle(width=1.5, height=.2, fill_color=LOADING_COLOR, fill_opacity=1)
+    stats_rect.next_to(circle, RIGHT, buff=.1)
+    text = Text(text, font="DDTW00-Italic", color=BLACK).scale(.2)
+    text.next_to(circle, LEFT, buff=.1)
+    club_line = VGroup(circle, stats_rect, text)
+    return club_line  
 
 def get_index_world():
     """This function gets all countries initials (regex), then creates a dict
@@ -27,13 +40,37 @@ def get_index_world():
 
     return dict(zip(initials, range(len(initials))))
 
+class RankingTable(Mobject):
 
+    def __init__(self, image_name, texts, **kwargs):
+        VMobject.__init__(self, **kwargs)
+        main_rect = Rectangle(width=2.8, height=4, color=LOADING_COLOR, stroke_width=1)
+        icon = Avatar(ASSETS_PATH + 'leagues/' + image_name, 0, 0, .5)
+        self.clubs = Group(*[create_line_table(i) for i in texts])
+        self.clubs.set_y(1.7)
+        self.clubs.arrange_submobjects(DOWN, False, False, buff=.2)
+        self.add(self.clubs)
+        self.add(main_rect)
+        self.add(icon)
+    def surround_club(self, index=0, color=RED):
+        width = self.clubs[index].get_width()
+        height = self.clubs[index].get_height()
+        surrounding_rect = Rectangle(width=width, height=height, color=color)
+        surrounding_rect.move_to(self.clubs[index])
+        return surrounding_rect
+    def surround_winner(self):
+        return self.surround_club(0, GREEN)
+    def surround_losers(self):
+        return VGroup(*[self.surround_club(i, RED) for i in range(5, 8)])
+
+        
 class MotivationScene(MovingCameraScene):
 
     def construct(self):
         self.prepare()
         self.draw_map()
         self.show_different_formats()
+        self.explanation_soccer_format()
         self.focus_on_europe()
         self.back_to_us()
 
@@ -42,17 +79,37 @@ class MotivationScene(MovingCameraScene):
         """
         self.world_map = AvatarSVG(ASSETS_PATH + "main_world.svg")
         self.world_map.scale(2)
-        self.play(ShowCreation(self.world_map))
-        self.play(self.world_map.color_countries, EUROPE)
         self.wait()
 
     def draw_map(self):
         """Draw the world map"""
-        pass
+        self.play(ShowCreation(self.world_map))
 
     def show_different_formats(self):
         """Show the different regions (Europe/Asia/Africa/... vs North America)"""
-        pass
+        self.play(self.world_map.color_countries, FOUR_NATIONS)
+        texts = ["1", "2", ".", ".", ".", "18", "19", "20"]
+        images = os.listdir(ASSETS_PATH + "leagues")
+        images.pop(0)
+        j = 0
+        start = np.array([-4, -2, 0])
+        self.rects_winners = VGroup()
+        self.rects_losers = VGroup()
+        for i in images:
+            table = RankingTable(i, texts).scale(.05)
+            country = self.world_map.get_country(FOUR_NATIONS[j])
+            table.move_to(self.world_map.get_country(FOUR_NATIONS[j]))
+            self.play(table.scale, 8,
+                      table.move_to, start + 2.7 * j * RIGHT)
+            self.rects_winners.add(table.surround_winner())
+            self.rects_losers.add(table.surround_losers())
+            self.wait()
+            j += 1
+    
+    def explanation_soccer_format(self):
+        self.play(ShowCreation(self.rects_winners))
+        self.wait()
+        self.play(ShowCreation(self.rects_losers))
 
     def focus_on_europe(self):
         """Show how chamionships are played (and won) in european countries (football)"""
@@ -60,6 +117,11 @@ class MotivationScene(MovingCameraScene):
 
     def back_to_us(self):
         """Show why it can't be done in the us (big country)"""
+        pass
+
+class Test(Scene):
+
+    def construct(self):
         pass
 
 
@@ -104,7 +166,9 @@ class AvatarSVG(SVGMobject):
     def color_country(self, country_code, color=RED):
         country_index = self.countries[country_code]
         self.parts[country_index].set_color(color)
-
+    def get_country(self, country_code):
+        index = self.countries[country_code]
+        return self.parts[index]
     def color_countries(self, countries_codes, color=RED):
         for i in countries_codes:
             self.color_country(i, color=color)
