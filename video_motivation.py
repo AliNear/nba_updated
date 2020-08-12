@@ -18,10 +18,10 @@ EUROPE = [
 
 FOUR_NATIONS = ["FR", "IT", "ES", "GB"]
 
-def create_line_table(text):
-    circle = Circle(radius=.15, fill_color=LOADING_COLOR, fill_opacity=1, stroke_width=0)
+def create_line_table(text, color=LOADING_COLOR):
+    circle = Circle(radius=.15, fill_color=color, fill_opacity=1, stroke_width=0)
     circle.set_xy(-.85, 1.75)
-    stats_rect = Rectangle(width=1.5, height=.2, fill_color=LOADING_COLOR, fill_opacity=1)
+    stats_rect = Rectangle(width=1.5, height=.2, fill_color=color, fill_opacity=1, stroke_width=0)
     stats_rect.next_to(circle, RIGHT, buff=.1)
     text = Text(text, font="DDTW00-Italic", color=BLACK).scale(.2)
     text.next_to(circle, LEFT, buff=.1)
@@ -41,21 +41,29 @@ def get_index_world():
     return dict(zip(initials, range(len(initials))))
 
 class RankingTable(Mobject):
-
+    CONFIG = {
+            "main_rect_kwargs": {
+                "color": LOADING_COLOR,
+                "fill_color": LOADING_COLOR,
+                "fill_opacity": 1,
+                "stroke_width": 1
+                },
+            "clubs_color": "#cfcfcf"
+            }
     def __init__(self, image_name, texts, **kwargs):
         VMobject.__init__(self, **kwargs)
-        main_rect = Rectangle(width=2.8, height=4, color=LOADING_COLOR, stroke_width=1)
+        main_rect = Rectangle(width=2.8, height=4, **self.main_rect_kwargs)
         icon = Avatar(ASSETS_PATH + 'leagues/' + image_name, 0, 0, .5)
-        self.clubs = Group(*[create_line_table(i) for i in texts])
+        self.clubs = Group(*[create_line_table(i, color=self.clubs_color) for i in texts])
         self.clubs.set_y(1.7)
         self.clubs.arrange_submobjects(DOWN, False, False, buff=.2)
-        self.add(self.clubs)
         self.add(main_rect)
+        self.add(self.clubs)
         self.add(icon)
     def surround_club(self, index=0, color=RED):
         width = self.clubs[index].get_width()
         height = self.clubs[index].get_height()
-        surrounding_rect = Rectangle(width=width, height=height, color=color)
+        surrounding_rect = Rectangle(width=width, height=height, color=color, stroke_width=1)
         surrounding_rect.move_to(self.clubs[index])
         return surrounding_rect
     def surround_winner(self):
