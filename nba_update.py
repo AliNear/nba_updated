@@ -696,7 +696,6 @@ class PlayoffsScene(BlankNBAScene):
         self.play(Write(champions_year))
         self.wait()
 
- 
 
 class Test(Scene):
 

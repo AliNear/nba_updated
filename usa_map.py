@@ -55,11 +55,11 @@ class NumberAnimation(VMobject):
 class NBAScene(MovingCameraScene):
     CONFIG = {
             "text_kwargs": {
-                "font": "DDTW00-CondensedBoldItalic",
+                "font": "DDT W00 Condensed Bold Italic",
                 "color":"#403c3c",
                 },
             "title_kwargs": {
-                "font": "DDTW00-CondensedBoldItalic",
+                "font": "DDT W00 Condensed Bold Italic",
                 "color": BLACK,
                 },
             "background_img": ASSETS_PATH + "background.png",
@@ -77,16 +77,32 @@ class NBAScene(MovingCameraScene):
         self.add_games_count()
 
     def add_teams(self, division):
-        pass
-    
+        self.teams = Group()
+        all_files = os.listdir(ASSETS_PATH + '/teams')
+        all_files = [i for i in all_files if i.startswith('.') is False]
+
+        skip_check = (division == "ALL")
+
+        for i in all_files:
+            team_name = i.split('.')[0]
+            if TEAMS_POSITIONS[team_name].division == division or skip_check:
+                name = ASSETS_PATH + '/teams/' + i.split('.')[0]
+                team = Avatar(name, 0, 0, .25)
+                if skip_check:
+                    team.position = TEAMS_POSITIONS[team_name].pos
+                self.teams.add(team)
+                    
     def add_wireframe(self):
         y_main_line = 2.8
         x_main_dividers = 3
         y_upper_team_divider = 1.13
         y_lower_teal_divider = -.61
-        self.main_line = Line(np.array([-10, y_main_line, 0]), np.array([10, y_main_line, 0]), color=BLACK, stroke_width=3)
-        left_divider = Line(np.array([-x_main_dividers, y_main_line, 0]), np.array([-x_main_dividers, -10, 0])
-                , color=BLACK, stroke_width=2)
+        self.main_line = Line(np.array([-10, y_main_line, 0]), 
+                              np.array([10, y_main_line, 0]),
+                              color=BLACK, stroke_width=3)
+        left_divider = Line(np.array([-x_main_dividers, y_main_line, 0]), 
+                            np.array([-x_main_dividers, -10, 0])
+                            , color=BLACK, stroke_width=2)
         right_divider = left_divider.copy().set_x(x_main_dividers)
         upper_team_divider = Line(np.array([-x_main_dividers, y_upper_team_divider, 0]), 
                 np.array([x_main_dividers, y_upper_team_divider, 0]), color=BLACK, stroke_width=1)
@@ -135,10 +151,10 @@ class NBAScene(MovingCameraScene):
         total = NumberAnimation(self.categories[3], spacing = 2.2, **self.total_config)
         self.numbers.add(total)
 
-class MainMapScene(MovingCameraScene):
+class MainMapScene(NBAScene):
     CONFIG = {
             "text_kwargs": {
-                "font": "DDTW00-CondensedHeavyIt",
+                "font": "DDT W00 Condensed Bold Italic",
                 "color": BLACK,
                 },
             "background": ASSETS_PATH + "background.png",
@@ -146,29 +162,53 @@ class MainMapScene(MovingCameraScene):
     def construct(self):
         self.prepare()
         self.general_info()
-        self.east_west()
+        self.add_teams("ALL")
         self.teams_conferences()
         self.to_division()
     
     def prepare(self):
         self.map = MapUSA(ASSETS_PATH + "us.svg")
-        self.play(ShowCreation(self.map))
+        self.map.set_x(-0.3)
+        self.play(FadeIn(self.map))
 
     def general_info(self):
         """Give general information about the NBA, ie: number of teams,
         acronym signification, when did it start, ...
         """
-        pass
-    
-    def east_west(self):
-        """Divide the US map into EASTERN & WESTERN conferences, and 
-        give some info about both.
-        """
-        pass
+        self.nba = Text("NBA", **self.text_kwargs).scale(.7).set_y(3.5)
+        self.nba_extended = Text("NATIONAL BASKETBALL ASSOCIATION", **self.text_kwargs)
+        self.nba_extended.scale(.5).set_y(3.5)
+        self.play(Write(self.nba))
+        self.wait()
+        self.play(Transform(self.nba, self.nba_extended))
+        self.wait()
+        #Teams
+        teams = Text("30 TEAMS", **self.text_kwargs).scale(.6).set_y(3.5)
+        self.play(FadeOut(self.nba))
+        self.play(FadeInFrom(teams, UP))
+        conf_teams_west = Text("15 TEAMS", **self.text_kwargs).scale(.6).set_xy(5, -.5)
+        conf_teams_east = conf_teams_west.copy().set_x(-5)
+        conf_teams = VGroup(conf_teams_west, conf_teams_east)
+        #coloring each conference
+        self.map.color_east()
+        self.map.color_west()
+        self.wait()
+        self.wait()
+        self.play(Transform(teams, conf_teams))
+        
+
+    # def east_west(self):
+    #     """Divide the US map into EASTERN & WESTERN conferences, and 
+    #     give some info about both.
+    #     """
+    #     pass
     
     def teams_conferences(self):
+        self.teams.set_x(-5) 
+        self.teams.set_y(3.4)
+        self.play(self.teams.arrange_in_grid,2, 15)
+        self.wait()
         """Add each team to its conference"""
-        pass
 
     def to_division(self):
         """Divide the map into the six (06) divisions"""
