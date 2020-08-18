@@ -90,6 +90,7 @@ class NBAScene(MovingCameraScene):
                 team = Avatar(name, 0, 0, .25)
                 if skip_check:
                     team.position = TEAMS_POSITIONS[team_name].pos
+                    team.division = TEAMS_POSITIONS[team_name].division
                 self.teams.add(team)
                     
     def add_wireframe(self):
@@ -175,28 +176,31 @@ class MainMapScene(NBAScene):
         """Give general information about the NBA, ie: number of teams,
         acronym signification, when did it start, ...
         """
-        self.nba = Text("NBA", **self.text_kwargs).scale(.7).set_y(3.5)
+        self.nba = Text("NBA", **self.text_kwargs).scale(1.2).set_y(3.5)
         self.nba_extended = Text("NATIONAL BASKETBALL ASSOCIATION", **self.text_kwargs)
-        self.nba_extended.scale(.5).set_y(3.5)
+        self.nba_extended.scale(.7).set_y(3.5)
         self.play(Write(self.nba))
         self.wait()
         self.play(Transform(self.nba, self.nba_extended))
         self.wait()
         #Teams
-        teams = Text("30 TEAMS", **self.text_kwargs).scale(.6).set_y(3.5)
+        self.teams_text = Text("30 TEAMS", **self.text_kwargs).scale(.9).set_y(3.5)
         self.play(FadeOut(self.nba))
-        self.play(FadeInFrom(teams, UP))
-        conf_teams_west = Text("15 TEAMS", **self.text_kwargs).scale(.6).set_xy(5, -.5)
-        conf_teams_east = conf_teams_west.copy().set_x(-5)
-        conf_teams = VGroup(conf_teams_west, conf_teams_east)
+        self.play(FadeInFrom(self.teams_text, UP))
+        self.conf_teams_west = Text("15 TEAMS", **self.text_kwargs).scale(.9).set_xy(5, -.5)
+        self.conf_teams_east = self.conf_teams_west.copy().set_x(-5)
+        self.conf_teams = VGroup(self.conf_teams_west, self.conf_teams_east)
         #coloring each conference
         self.map.color_east()
         self.map.color_west()
         self.wait()
-        self.wait()
-        self.play(Transform(teams, conf_teams))
-        
-
+        self.img_east = Avatar(ASSETS_PATH + "east.png", 5, .5, .5)
+        self.img_west = Avatar(ASSETS_PATH + "west.png", -5,.5, .5)
+        self.play(ApplyMethod(self.map.color_east),
+                  ApplyMethod(self.map.color_west),
+                  ShowCreation(self.img_east),
+                  ShowCreation(self.img_west))
+        self.play(Transform(self.teams_text, self.conf_teams))
     # def east_west(self):
     #     """Divide the US map into EASTERN & WESTERN conferences, and 
     #     give some info about both.
@@ -206,14 +210,46 @@ class MainMapScene(NBAScene):
     def teams_conferences(self):
         self.teams.set_x(-5) 
         self.teams.set_y(3.4)
-        self.play(self.teams.arrange_in_grid,2, 15)
+        #Not the best solution, but I experienced a weird bug
+        self.play(self.map.shift, 2*RIGHT,
+                  FadeOut(self.teams_text),
+                  FadeOut(self.conf_teams),
+                  FadeOut(self.img_east),
+                  FadeOut(self.img_west))
+        #self.play(self.conf_teams_west.shift, 2*UP)
+        #self.play(self.conf_teams.shift, 2*DOWN)
+        self.teams.set_x(-2)
+        self.play(self.teams.arrange_in_grid,
+                self.teams.shift, 4*LEFT)
         self.wait()
         """Add each team to its conference"""
+        for i in range(0, 25, 6): 
+            animation = [ApplyMethod(i.move_to, np.array([i.position[0]+2,i.position[1],0])) for i in self.teams[i:i+6]]
+            self.play(*animation)
+            # i.move_to(np.array([i.position[0]+2,i.position[1],0]))
+
+        self.wait()
+
+    def add_to_division(self):
+        self.img_division = {
+            "PACIFIC": Group(),
+            "ATLANTIC": Group(),
+            "CENTRAL": Group(),
+            "SOUTHEAST": Group(),
+            "SOUTHWEST": Group(),
+            "NORTHWEST": Group(),
+        }
+
+        for i in self.teams:
+            self.img_division[i.division].add(i)
 
     def to_division(self):
         """Divide the map into the six (06) divisions"""
-        pass
-
+        self.add_to_division()
+        self.play(
+            self.map.move_portion, SOUTHWEST, DOWN,
+            self.img_division["SOUTHWEST"].shift, DOWN
+        )
 class Test(NBAScene):
     def construct(self):
         self.play(Write(self.title))
