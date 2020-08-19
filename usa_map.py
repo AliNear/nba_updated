@@ -246,10 +246,25 @@ class MainMapScene(NBAScene):
     def to_division(self):
         """Divide the map into the six (06) divisions"""
         self.add_to_division()
-        self.play(
-            self.map.move_portion, SOUTHWEST, DOWN,
-            self.img_division["SOUTHWEST"].shift, DOWN
-        )
+        self.play(self.map.shift, 2 * LEFT,
+                  self.teams.shift, 2 * LEFT)
+        amount = 1.8
+        def move_division(division, direction, div_str):
+            #TODO: Add division title
+            text = Text(div_str + "\nDIVISION", **self.text_kwargs).scale(.6).move_to(1.85 * amount * direction)
+            self.play(
+                self.map.move_portion, division, direction,
+                self.img_division[div_str].shift, direction,
+                Write(text)
+            )
+        move_division(SOUTHEAST, DOWN + amount * RIGHT, "SOUTHEAST")
+        move_division(SOUTHWEST, DOWN, "SOUTHWEST")
+        move_division(PACIFIC, DOWN + amount * LEFT, "PACIFIC")
+        move_division(NORTHWEST, UP + amount * LEFT, "NORTHWEST")
+        move_division(CENTRAL, UP, "CENTRAL")
+        move_division(ATLANTIC, UP + amount * RIGHT, "ATLANTIC")
+        
+
 class Test(NBAScene):
     def construct(self):
         self.play(Write(self.title))
