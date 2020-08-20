@@ -222,6 +222,21 @@ class MainMapScene(NBAScene):
         self.play(self.teams.arrange_in_grid,
                 self.teams.shift, 4*LEFT)
         self.wait()
+        r = Rectangle(height=self.teams.get_height(), width=self.teams.get_width(),color=RED)
+        r.move_to(self.teams)
+        r.surround(self.teams, 1)
+        self.play(ShowCreationThenDestruction(r), run_time=2)
+        self.camera_frame = self.camera.frame
+        self.camera_frame.save_state()
+        self.play(
+            self.camera_frame.set_width, self.teams.get_width()*1.1,
+            self.camera_frame.set_height, self.teams.get_height()*1.1,
+            self.camera_frame.move_to, self.teams
+        )
+        self.wait()
+        self.play(Restore(self.camera_frame))
+        self.wait()
+
         """Add each team to its conference"""
         for i in range(0, 25, 6): 
             animation = [ApplyMethod(i.move_to, np.array([i.position[0]+2,i.position[1],0])) for i in self.teams[i:i+6]]
@@ -229,7 +244,6 @@ class MainMapScene(NBAScene):
             # i.move_to(np.array([i.position[0]+2,i.position[1],0]))
 
         self.wait()
-
     def add_to_division(self):
         self.img_division = {
             "PACIFIC": Group(),
@@ -267,10 +281,16 @@ class MainMapScene(NBAScene):
 
 class Test(NBAScene):
     def construct(self):
-        self.play(Write(self.title))
-        self.play(ShowCreation(self.wireframe))
-        self.play(ShowCreation(self.categories))
-        self.play(ShowCreation(self.box_divider))
-        self.play(ShowCreation(self.numbers))
-        self.play(self.numbers[0].increment(20))
-        self.wait()
+        # self.play(Write(self.title))
+        # self.play(ShowCreation(self.wireframe))
+        # self.play(ShowCreation(self.categories))
+        # self.play(ShowCreation(self.box_divider))
+        # self.play(ShowCreation(self.numbers))
+        # self.play(self.numbers[0].increment(20))
+        # self.wait()
+        c = Circle(radius=2)
+        r = Rectangle()
+        r.surround(c)
+        r.surround(c, 1)
+        self.play(ShowCreation(c))
+        self.play(ShowCreation(r))
