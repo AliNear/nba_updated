@@ -13,20 +13,22 @@ class NumberAnimation(VMobject):
             "color": "#403c3c",
             "font": "Fjalla One",
         },
-        "scale_factor": .3,
+        "scale_factor": .5,
         "animation_length": 1,
 
     }
 
-    def __init__(self, next_to_object, spacing=.3, **kwargs):
+    def __init__(self, next_to_object, spacing=.3, shift=np.zeros(3), **kwargs):
         VMobject.__init__(self, **kwargs)
+        print(kwargs)
         self.current_value = 0
         self.number = Text("0", **self.text_kwargs)
         self.number.scale(self.scale_factor)
-        self.number.next_to(next_to_object, RIGHT, buff=spacing)
+        self.number.next_to(next_to_object, RIGHT, buff=spacing).shift(shift)
         self.next_to_object = next_to_object
         self.first = True
         self.spacing = spacing
+        self.shift = shift
         self.add(self.number)
     def increment(self, amount):
         alpha = ValueTracker(0)
@@ -37,7 +39,7 @@ class NumberAnimation(VMobject):
             new_number = Text(
                     str(int(self.current_value)), **self.text_kwargs)
             new_number.scale(self.scale_factor)
-            new_number.next_to(self.next_to_object, RIGHT, buff=self.spacing)
+            new_number.next_to(self.next_to_object, RIGHT, buff=self.spacing).shift(self.shift)
             #new_number.set_xy(self.x, self.y)
             t.become(new_number)
             self.old_alpha = alpha.get_value()
@@ -71,7 +73,7 @@ class NBAScene(MovingCameraScene):
     def setup(self):
         self.background = Avatar(self.background_img, 0, 0, 6, plot_depth=-10)
         self.add(self.background)
-        self.title = Text("REGULAR SEASON", **self.title_kwargs).scale(.5)
+        self.title = Text("REGULAR SEASON", **self.title_kwargs).scale(.8)
         self.title.set_xy(0, 3.5)
         self.add_wireframe()
         self.add_games_count()
@@ -91,6 +93,7 @@ class NBAScene(MovingCameraScene):
                 if skip_check:
                     team.position = TEAMS_POSITIONS[team_name].pos
                     team.division = TEAMS_POSITIONS[team_name].division
+                team.name = team_name
                 self.teams.add(team)
                     
     def add_wireframe(self):
@@ -122,14 +125,14 @@ class NBAScene(MovingCameraScene):
         starting_x = 4.5
         starting_y = 2.3
         for i in texts:
-            category = Text(i, **self.text_kwargs).scale(.3)
+            category = Text(i, **self.text_kwargs).scale(.5)
             category.set_y(starting_y)
             category.set_x(starting_x + category.get_width()/2)
             self.categories.add(category)
             starting_y -= .6
         self.categories.set_xy(starting_x, starting_y)
         total_color = "#cd8585"
-        total = Text("Total", font="DDTW00-CondensedBoldItalic", color=total_color).scale(.35)
+        total = Text("Total", font="DDT W00 Condensed Bold Italic", color=total_color).scale(.55)
         total.set_y(starting_y - 1.2)
         total.set_x(starting_x - total.get_width())
         self.categories.add(total)
@@ -147,11 +150,20 @@ class NBAScene(MovingCameraScene):
                 "text_kwargs": {
                     "color": total_color,
                     },
-                "scale_factor": .35,
+                "scale_factor": .55,
                 }
-        total = NumberAnimation(self.categories[3], spacing = 2.2, **self.total_config)
+        total = NumberAnimation(self.categories[3], spacing = 2.2, shift=.13*RIGHT,**self.total_config)
         self.numbers.add(total)
 
+    def updade_games_count(self, counts):
+        animations = VGroup()
+        for i in range(len(counts)):
+            if counts[i] == 0:
+                pass
+            else:
+                increment = self.numbers[i].increment(counts[i])
+                animations.add(increment)
+        return animations
 class MainMapScene(NBAScene):
     CONFIG = {
             "text_kwargs": {
@@ -279,18 +291,10 @@ class MainMapScene(NBAScene):
         move_division(ATLANTIC, UP + amount * RIGHT, "ATLANTIC")
         
 
-class Test(NBAScene):
+class Test(Scene):
     def construct(self):
-        # self.play(Write(self.title))
-        # self.play(ShowCreation(self.wireframe))
-        # self.play(ShowCreation(self.categories))
-        # self.play(ShowCreation(self.box_divider))
-        # self.play(ShowCreation(self.numbers))
-        # self.play(self.numbers[0].increment(20))
-        # self.wait()
-        c = Circle(radius=2)
-        r = Rectangle()
-        r.surround(c)
-        r.surround(c, 1)
-        self.play(ShowCreation(c))
-        self.play(ShowCreation(r))
+        line = Line(start=20*LEFT, end=20*RIGHT, color=BLACK)
+        line = DashedVMobject(line, num_dashes = 130)
+        l = Line(start=ORIGIN, end=4*RIGHT)
+        self.play(ShowCreation(l))
+        self.play(line.shift, 5 * RIGHT, run_time=4, rate_func=lambda t: t)
