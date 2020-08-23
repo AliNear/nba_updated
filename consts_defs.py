@@ -75,6 +75,37 @@ CENTRAL = ["WI", "IA", "MI", "IN", "IL", "OH", "MO"]
 ATLANTIC = ["ME", "NH", "VT", "CT", "RI", "MA", "NY", "NJ", "PA"]
 SOUTHEAST = ["MD", "WV", "VA", "NC", "KY", "SC", "GA", "FL", "AL"]
 
+SCORES = {
+    "Blazers": "LWLW",
+    "Lakers": "WLWW",
+    "Heat": "WL",
+    "Thunder": "WWL",
+    "76ers": "WL",
+    "Rockets": "WLLL",
+    "Timberwolves": "WLWW",
+    "Spurs": "LLW",
+    "Hornets": "WW",
+    "Magic": "LW",
+    "Grizzlies": "WWWL",
+    "Pelicans": "WWW",
+    "Jazz": "WWL",
+    "Nuggets": "WWLW",
+    "Knicks": "WW",
+    "Nets": "WW",
+    "Bulls": "WW",
+    "Clippers": "LWWW",
+    "Mavericks": "LLWW",
+    "Raptors": "LL",
+    "Pistons": "WL",
+    "Hawks": "WW",
+    "Cavaliers": "WW",
+    "Kings": "WWWW",
+    "Bucks": "LW",
+    "Suns": "LWWW",
+    "Wizards": "WW",
+    "Celtics": "LW",
+    "Pacers": "WW",
+}
 EAST = CENTRAL + ATLANTIC + SOUTHEAST
 WEST = SOUTHWEST + NORTHWEST + PACIFIC
 EAST_COLOR = "#1c3f87"
