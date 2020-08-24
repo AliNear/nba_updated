@@ -14,6 +14,13 @@ def get_wl(name):
             wl = SCORES[i]
             return (wl.count('W'), wl.count('L'))
 
+def get_cross_line(obj, overflow=.2):
+    center = obj.get_center()
+    width = obj.get_width() * RIGHT/2
+    start = center - width - (overflow * RIGHT)
+    end = center + width + (overflow * RIGHT)
+    return Line(start, end)
+
 class DivisionScene(NBAScene):
     CONIFG = {
         "main_team_pos": np.array([-1.4, .25, 0]),
@@ -32,17 +39,37 @@ class DivisionScene(NBAScene):
         self.teams.arrange_submobjects(DOWN, False, False, buff=.4)
         names = ["Kings", "Suns", "Clippers", "Lakers", "Warriors"]
         names.reverse()
+        self.add_team_names(names)
+
+    def add_team_names(self, names):
+        """Given a list of names, this method creates text objects of the names and add them 
+        to their dedicated position
+        """
         self.team_names = VGroup(*[Text(i.upper(), **self.text_kwargs).scale(.4) for i in names])
-        self.team_names.arrange_submobjects(DOWN, False, False, buff=.75)
-        self.team_names.set_xy(-5., .2)
+        y = self.teams[0].get_y()
+        x = -5.5
+        for i in self.team_names:
+            i.set_xy(x + i.get_width()/2, y)
+            y -= .9
+ 
     def draw_foundation(self):
         self.play(ShowCreation(self.teams), ShowCreation(self.team_names))
         self.play(Write(self.title))
         self.play(ShowCreation(self.wireframe))
+        self.play(FadeInFrom(self.box, 7 * DOWN))
+        self.play(FadeInFrom(self.division_name, 7 * DOWN))
         self.play(ShowCreation(self.categories))
         self.play(ShowCreation(self.box_divider))
         self.play(ShowCreation(self.numbers))
         self.wait()
+
+    def add_games_description(self, total=4, home=2, away=2):
+        self.total = Text("{0} GAMES".format(total), **self.text_kwargs).scale(1)
+        self.total.set_y(-2.0)
+        self.home_away = Text("{0} Home, {1} Away".format(home, away), **self.text_kwargs).scale(.8)
+        self.home_away.set_y(1.8)
+        self.play(Write(self.total),
+                  Write(self.home_away))
 
     def single_matchup(self, index):
         team = self.teams[index]
@@ -52,12 +79,17 @@ class DivisionScene(NBAScene):
             team.move_to, second_team_pos,
             team.scale, 2
         )
+        if index == 1:
+            self.add_games_description()
         game_counts = self.updade_games_count([2, 0, 0, 2])
         self.play(
             *game_counts
         )
         self.wait()
         self.play(Restore(team))
+        #Team crossing :)
+        cross = get_cross_line(Group(team, self.team_names[index]), overflow=.1).set_color(RED)
+        self.play(ShowCreation(cross), run_time=.5)
 
 
     def begin_matchups(self):
@@ -72,3 +104,13 @@ class DivisionScene(NBAScene):
         self.play(Write(self.vs_text))
         for i in (1,2):
             self.single_matchup(i)
+            
+
+# class Test(Scene):
+#     def construct(self):
+#         icon = Rectangle(fill_color=GREEN, fill_opacity=1)
+#         line = get_cross_line(icon )
+
+#         self.play(ShowCreation(icon))
+#         self.play(ShowCreation(line))
+

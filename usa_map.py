@@ -20,7 +20,6 @@ class NumberAnimation(VMobject):
 
     def __init__(self, next_to_object, spacing=.3, shift=np.zeros(3), **kwargs):
         VMobject.__init__(self, **kwargs)
-        print(kwargs)
         self.current_value = 0
         self.number = Text("0", **self.text_kwargs)
         self.number.scale(self.scale_factor)
@@ -76,6 +75,7 @@ class NBAScene(MovingCameraScene):
         self.title = Text("REGULAR SEASON", **self.title_kwargs).scale(.8)
         self.title.set_xy(0, 3.5)
         self.add_wireframe()
+        self.add_divison_title()
         self.add_games_count()
 
     def add_teams(self, division):
@@ -97,6 +97,8 @@ class NBAScene(MovingCameraScene):
                 self.teams.add(team)
                     
     def add_wireframe(self):
+        """This method draws the lines that seperates different parts of the scene
+        """
         y_main_line = 2.8
         x_main_dividers = 3
         y_upper_team_divider = 1.13
@@ -114,6 +116,13 @@ class NBAScene(MovingCameraScene):
         self.main_dividers = VGroup(left_divider, right_divider)
         self.team_dividers = VGroup(upper_team_divider, lower_team_divider)
         self.wireframe = VGroup(self.main_dividers, self.main_line, self.team_dividers)
+
+    def add_divison_title(self):
+        self.box = Rectangle(width=3, height=.7, fill_color="#cd8585", fill_opacity=1).set_y(-3.7)
+        self.box.set_stroke(width=0)
+        self.division_name = Text("PACIFIC DIVISION", **self.text_kwargs).scale(.6)
+        self.division_name.move_to(self.box)
+
     def add_games_count(self, count=3):
         """This method add a table like object to hold different games 
         count, ex: In Division, Other Division, ...
