@@ -122,7 +122,7 @@ TEAMS_POSITIONS = {
     "WashingtonWizards": TeamData((2.4, 0.4), "SOUTHEAST"),
     "SacramentoKings": TeamData((-2.7, 0.5), "PACIFIC"),
     "UtahJazz": TeamData((-1.5, 0.35), "NORTHWEST"),
-    "LosAngeles": TeamData((-2.6, -0.4), "PACIFIC"),
+    "LosAngelesLakers": TeamData((-2.6, -0.4), "PACIFIC"),
     "ClevelandCavaliers": TeamData((2.2, 0.7), "CENTRAL"),
     "Boston_Celtics": TeamData((03.2, 1.1), "ATLANTIC"),
     "PhoenixSuns": TeamData((-1.5, -0.7), "PACIFIC"),

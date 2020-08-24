@@ -9,8 +9,9 @@ ASSETS_PATH = os.getcwd() + "/projects/nba_update_project/assets/"
 main_team_pos = np.array([-1.4, .25, 0])
 second_team_pos = np.array([1.4, .25, 0])
 def get_wl(name):
+    print (name)
     for i in SCORES.keys():
-        if i.find(name) != -1:
+        if name.find(i) != -1:
             wl = SCORES[i]
             return (wl.count('W'), wl.count('L'))
 
@@ -32,6 +33,8 @@ class DivisionScene(NBAScene):
         self.prepare()
         self.draw_foundation()
         self.begin_matchups()
+        self.clear_scene()
+
     def prepare(self):
         self.add_teams("PACIFIC")
         self.teams.set_x(-6)
@@ -51,6 +54,13 @@ class DivisionScene(NBAScene):
         for i in self.team_names:
             i.set_xy(x + i.get_width()/2, y)
             y -= .9
+
+    def clear_scene(self):
+        self.main_team = self.teams[0]
+        self.play(
+            FadeOut(self.teams[1:]),
+            FadeOut(self.team_names[1:])
+        )
  
     def draw_foundation(self):
         self.play(ShowCreation(self.teams), ShowCreation(self.team_names))
@@ -61,6 +71,8 @@ class DivisionScene(NBAScene):
         self.play(ShowCreation(self.categories))
         self.play(ShowCreation(self.box_divider))
         self.play(ShowCreation(self.numbers))
+        self.play(ShowCreation(self.wl_box))
+        self.play(ShowCreation(self.wins), ShowCreation(self.losses))
         self.wait()
 
     def add_games_description(self, total=4, home=2, away=2):
@@ -82,13 +94,16 @@ class DivisionScene(NBAScene):
         if index == 1:
             self.add_games_description()
         game_counts = self.updade_games_count([2, 0, 0, 2])
+        wins_losses = self.update_win_losses(*wins_losses)
         self.play(
-            *game_counts
+            *game_counts,
+            *wins_losses
         )
         self.wait()
         self.play(Restore(team))
         #Team crossing :)
         cross = get_cross_line(Group(team, self.team_names[index]), overflow=.1).set_color(RED)
+        team.add(cross)
         self.play(ShowCreation(cross), run_time=.5)
 
 

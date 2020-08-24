@@ -18,16 +18,17 @@ class NumberAnimation(VMobject):
 
     }
 
-    def __init__(self, next_to_object, spacing=.3, shift=np.zeros(3), **kwargs):
+    def __init__(self, next_to_object, spacing=.3, shift=np.zeros(3), direction=RIGHT, **kwargs):
         VMobject.__init__(self, **kwargs)
         self.current_value = 0
         self.number = Text("0", **self.text_kwargs)
         self.number.scale(self.scale_factor)
-        self.number.next_to(next_to_object, RIGHT, buff=spacing).shift(shift)
+        self.number.next_to(next_to_object, direction, buff=spacing).shift(shift)
         self.next_to_object = next_to_object
         self.first = True
         self.spacing = spacing
         self.shift = shift
+        self.direction = direction
         self.add(self.number)
     def increment(self, amount):
         alpha = ValueTracker(0)
@@ -38,7 +39,7 @@ class NumberAnimation(VMobject):
             new_number = Text(
                     str(int(self.current_value)), **self.text_kwargs)
             new_number.scale(self.scale_factor)
-            new_number.next_to(self.next_to_object, RIGHT, buff=self.spacing).shift(self.shift)
+            new_number.next_to(self.next_to_object, self.direction, buff=self.spacing).shift(self.shift)
             #new_number.set_xy(self.x, self.y)
             t.become(new_number)
             self.old_alpha = alpha.get_value()
@@ -77,6 +78,7 @@ class NBAScene(MovingCameraScene):
         self.add_wireframe()
         self.add_divison_title()
         self.add_games_count()
+        self.add_win_losses()
 
     def add_teams(self, division):
         self.teams = Group()
@@ -173,6 +175,17 @@ class NBAScene(MovingCameraScene):
                 increment = self.numbers[i].increment(counts[i])
                 animations.add(increment)
         return animations
+    def add_win_losses(self):
+        self.wl_box = Rectangle(width=2, height=.5, fill_color=GREEN, fill_opacity=1).set_y(-3)
+        empty_obj = Rectangle().set_xy(0, -3)
+        self.wins = NumberAnimation(empty_obj, LEFT, .5)
+        self.losses = NumberAnimation(empty_obj, RIGHT, .5)
+    def update_win_losses(self, wins, losses):
+        animations = VGroup()
+        animations.add(self.wins.increment(wins))
+        animations.add(self.losses.increment(losses))
+        return animations
+
 class MainMapScene(NBAScene):
     CONFIG = {
             "text_kwargs": {
