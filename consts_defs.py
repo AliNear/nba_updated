@@ -129,7 +129,7 @@ TEAMS_POSITIONS = {
     "DallasMavericks": TeamData((0.4, -1), "SOUTHWEST"),
     "Memphis_Grizzlies": TeamData((1, -0.4), "SOUTHWEST"),
     "MiamiHeat": TeamData((02.5, -1.8), "SOUTHEAST"),
-    "PortlandTrail": TeamData((-2.8, 01.3), "NORTHWEST"),
+    "PortlandTrailBlazers": TeamData((-2.8, 01.3), "NORTHWEST"),
     "Denver_Nuggets": TeamData((-0.7, 0), "NORTHWEST"),
     "ChicagoBulls": TeamData((1.3, 0.6), "CENTRAL"),
     "Oklahoma_City_Thunder": TeamData((0.3, -0.5), "NORTHWEST"),

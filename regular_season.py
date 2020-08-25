@@ -9,7 +9,7 @@ ASSETS_PATH = os.getcwd() + "/projects/nba_update_project/assets/"
 main_team_pos = np.array([-1.4, .25, 0])
 second_team_pos = np.array([1.4, .25, 0])
 def get_wl(name):
-    print (name)
+    # print (name)
     for i in SCORES.keys():
         if name.find(i) != -1:
             wl = SCORES[i]
@@ -30,10 +30,13 @@ class DivisionScene(NBAScene):
     def __init__(self, **kwargs):
         NBAScene.__init__(self, **kwargs)
     def construct(self):
+        #For the in division games
         self.prepare()
         self.draw_foundation()
         self.begin_matchups()
         self.clear_scene()
+        #for the inter-division games
+        self.inter_division()
 
     def prepare(self):
         self.add_teams("PACIFIC")
@@ -59,7 +62,9 @@ class DivisionScene(NBAScene):
         self.main_team = self.teams[0]
         self.play(
             FadeOut(self.teams[1:]),
-            FadeOut(self.team_names[1:])
+            FadeOut(self.team_names),
+            FadeOut(self.total),
+            FadeOut(self.home_away)
         )
  
     def draw_foundation(self):
@@ -71,8 +76,8 @@ class DivisionScene(NBAScene):
         self.play(ShowCreation(self.categories))
         self.play(ShowCreation(self.box_divider))
         self.play(ShowCreation(self.numbers))
-        self.play(ShowCreation(self.wl_box))
-        self.play(ShowCreation(self.wins), ShowCreation(self.losses))
+        # self.play(ShowCreation(self.wl_box))
+        # self.play(ShowCreation(self.wins), ShowCreation(self.losses))
         self.wait()
 
     def add_games_description(self, total=4, home=2, away=2):
@@ -119,7 +124,17 @@ class DivisionScene(NBAScene):
         self.play(Write(self.vs_text))
         for i in (1,2):
             self.single_matchup(i)
-            
+    
+    def inter_division(self):
+        self.add_teams("NORTHWEST")
+        self.teams.set_y(2)
+        self.teams.set_x(-6)
+        self.teams.arrange_submobjects(DOWN, False, False, buff=.4)
+        
+        names = ["Nuggets", "Timberwolves", "Thunder", "Blazers", "Jazz" ]
+        self.add_team_names(names)
+        self.play(ShowCreation(self.teams))
+        self.play(ShowCreation(self.team_names))
 
 # class Test(Scene):
 #     def construct(self):
