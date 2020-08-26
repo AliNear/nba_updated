@@ -134,7 +134,7 @@ class NBAScene(MovingCameraScene):
         texts = texts[:3]
         self.categories = VGroup()
         starting_x = 4.5
-        starting_y = 2.3
+        starting_y = 2.6
         for i in texts:
             category = Text(i, **self.text_kwargs).scale(.5)
             category.set_y(starting_y)
@@ -148,13 +148,13 @@ class NBAScene(MovingCameraScene):
         total.set_x(starting_x - total.get_width())
         self.categories.add(total)
         #Thin line 
-        self.box_divider = Line(np.array([6, 1.3, 0]), np.array([6, -1., 0]),
+        self.box_divider = Line(np.array([6, 1.6, 0]), np.array([6, -0.6, 0]),
                                 color="#979797", stroke_width=.5)
         #NumberAnimation objects
         self.numbers = VGroup()
         for i in range(3):
             spacing = 3. - self.categories[i].get_width()
-            number = NumberAnimation(self.categories[i], spacing=spacing)
+            number = NumberAnimation(self.categories[i], spacing=spacing, animation_length=.3)
             self.numbers.add(number)
         #Not the greatest way to do it, but it works
         self.total_config = {
@@ -163,7 +163,7 @@ class NBAScene(MovingCameraScene):
                     },
                 "scale_factor": .55,
                 }
-        total = NumberAnimation(self.categories[3], spacing = 2.2, shift=.13*RIGHT,**self.total_config)
+        total = NumberAnimation(self.categories[3], spacing = 2.2, animation_length=.3, shift=.13*RIGHT,**self.total_config)
         self.numbers.add(total)
 
     def updade_games_count(self, counts):
@@ -177,16 +177,18 @@ class NBAScene(MovingCameraScene):
         return animations
     def add_win_losses(self):
         x = 3.5
-        y = -2
+        y = -1.8
         self.wins_text = Text("Wins", **self.text_kwargs).scale(.8)
         self.losses_text = Text("Losses", **self.text_kwargs).scale(.8)
         self.wins_text.set_xy(x + self.wins_text.get_width()/2, y) 
         self.losses_text.set_xy(x + self.losses_text.get_width()/2, y - .8) 
         self.wl_texts = VGroup(self.wins_text, self.losses_text)
-        self.wins = NumberAnimation(self.wins_text, 2.2)
-        self.losses = NumberAnimation(self.losses_text, 1.85)
+        self.wins = NumberAnimation(self.wins_text, 2.2, scale_factor=.8, animation_length=.3)
+        self.losses = NumberAnimation(self.losses_text, 1.85, scale_factor=.8, animation_length=.3)
         self.wl_divider = Line(np.array([6, y+.2, 0]), np.array([6, y-1, 0]),
                                 color="#979797", stroke_width=.5)
+        self.wl_h_divider = Line(np.array([x + .2, y + .7, 0]), np.array([x + 3, y + .7, 0]),
+                                color="#979797", stroke_width=.9)
         #
     def update_win_losses(self, wins, losses):
         animations = VGroup()
