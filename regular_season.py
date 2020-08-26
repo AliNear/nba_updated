@@ -5,7 +5,8 @@ from projects.project_one.custom_mobjects import *
 from projects.nba_update_project.consts_defs import *
 import os
 ASSETS_PATH = os.getcwd() + "/projects/nba_update_project/assets/"
-
+DIVISION_COUNT = 2
+CONFERENCE_COUNT = 2
 main_team_pos = np.array([-1.4, .25, 0])
 second_team_pos = np.array([1.4, .25, 0])
 def get_wl(name):
@@ -36,8 +37,13 @@ class DivisionScene(NBAScene):
         self.begin_matchups()
         self.clear_scene()
         #for the inter-division games
-        self.inter_division()
-
+        self.inter_division("NORTHWEST", names=NORTHWEST_NAMES)
+        self.wait()
+        self.clear_scene(False)
+        self.inter_division("SOUTHWEST", names=SOUTHWEST_NAMES)
+        self.clear_scene(False)
+        self.wait()
+        self.eatern_conf()
     def prepare(self):
         self.add_teams("PACIFIC")
         self.teams.set_x(-6)
@@ -58,10 +64,13 @@ class DivisionScene(NBAScene):
             i.set_xy(x + i.get_width()/2, y)
             y -= .9
 
-    def clear_scene(self):
-        self.main_team = self.teams[0]
+    def clear_scene(self, first=True):
+        i = 0
+        if first:
+            self.main_team = self.teams[0]
+            i = 1
         self.play(
-            FadeOut(self.teams[1:]),
+            FadeOut(self.teams[i:]),
             FadeOut(self.team_names),
             FadeOut(self.total),
             FadeOut(self.home_away)
@@ -76,11 +85,13 @@ class DivisionScene(NBAScene):
         self.play(ShowCreation(self.categories))
         self.play(ShowCreation(self.box_divider))
         self.play(ShowCreation(self.numbers))
-        # self.play(ShowCreation(self.wl_box))
-        # self.play(ShowCreation(self.wins), ShowCreation(self.losses))
+        self.play(ShowCreation(self.wl_texts))
+        self.play(ShowCreation(self.wl_divider))
+        self.play(ShowCreation(self.wins), ShowCreation(self.losses))
         self.wait()
 
-    def add_games_description(self, total=4, home=2, away=2):
+    def add_games_description(self, home=2, away=2):
+        total = home + away
         self.total = Text("{0} GAMES".format(total), **self.text_kwargs).scale(1)
         self.total.set_y(-2.0)
         self.home_away = Text("{0} Home, {1} Away".format(home, away), **self.text_kwargs).scale(.8)
@@ -88,7 +99,8 @@ class DivisionScene(NBAScene):
         self.play(Write(self.total),
                   Write(self.home_away))
 
-    def single_matchup(self, index):
+    def single_matchup(self, index, start=1, home=2, away=2, field=0):
+        total = home + away
         team = self.teams[index]
         team.save_state()
         wins_losses = get_wl(team.name) 
@@ -96,9 +108,11 @@ class DivisionScene(NBAScene):
             team.move_to, second_team_pos,
             team.scale, 2
         )
-        if index == 1:
-            self.add_games_description()
-        game_counts = self.updade_games_count([2, 0, 0, 2])
+        if index == start:
+            self.add_games_description(home, away)
+        games = [0, 0, 0, total]
+        games[field] = total
+        game_counts = self.updade_games_count(games)
         wins_losses = self.update_win_losses(*wins_losses)
         self.play(
             *game_counts,
@@ -107,7 +121,11 @@ class DivisionScene(NBAScene):
         self.wait()
         self.play(Restore(team))
         #Team crossing :)
-        cross = get_cross_line(Group(team, self.team_names[index]), overflow=.1).set_color(RED)
+        if self.team_names == None:
+            team_box = team
+        else:
+            team_box = Group(team, self.team_names[index])
+        cross = get_cross_line(team_box, overflow=.1).set_color(RED)
         team.add(cross)
         self.play(ShowCreation(cross), run_time=.5)
 
@@ -122,19 +140,46 @@ class DivisionScene(NBAScene):
         self.vs_text = Text("VS", font="Strenuous 3D", color=BLACK).scale(1.3)
         self.vs_text.set_y(.3)
         self.play(Write(self.vs_text))
-        for i in (1,2):
+        for i in range(1,DIVISION_COUNT):
             self.single_matchup(i)
     
-    def inter_division(self):
-        self.add_teams("NORTHWEST")
+    def inter_division(self, division, names=None):
+        self.add_teams(division)
         self.teams.set_y(2)
         self.teams.set_x(-6)
         self.teams.arrange_submobjects(DOWN, False, False, buff=.4)
-        
-        names = ["Nuggets", "Timberwolves", "Thunder", "Blazers", "Jazz" ]
-        self.add_team_names(names)
+        new_division_name = Text(division + " DIVISION", **self.text_kwargs).scale(.6)
+        new_division_name.move_to(self.box)
+        if names != None:
+            self.add_team_names(names)
+        self.play(Transform(self.division_name, new_division_name))
         self.play(ShowCreation(self.teams))
         self.play(ShowCreation(self.team_names))
+        # self.division_name = new_division_name
+        self.remove(new_division_name)
+        home_away = [[2,2], [2,2], [2,2], [2,1], [2,1]]
+        for i in range(DIVISION_COUNT):
+            h, a = home_away[i]
+            self.single_matchup(i, start=0, home=h, away=a, field=1)
+        
+    def eatern_conf(self):
+        self.add_teams("ATLANTIC")
+        teams = self.teams
+        self.team_names = None
+        self.add_teams("CENTRAL")
+        teams = Group(*teams, *self.teams)
+        self.add_teams("SOUTHEAST")
+        teams = Group(*teams, *self.teams)
+        self.teams = teams
+        self.teams.set_xy(-6, 2)
+        self.teams.arrange_in_grid()
+        new_name = Text("EASTERN CONFERENCE", **self.text_kwargs).scale(.6)
+        new_name.move_to(self.box)
+        self.play(ShowCreation(self.teams))
+        self.play(Transform(self.division_name, new_name))
+        for i in range(CONFERENCE_COUNT):
+            self.single_matchup(i, start=0, home=1, away=1, field=2)
+
 
 # class Test(Scene):
 #     def construct(self):

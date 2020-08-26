@@ -138,17 +138,19 @@ TEAMS_POSITIONS = {
     "Los_Angeles_Clippers": TeamData((-2.5, -0.5), "PACIFIC"),
     "OrlandoMagic": TeamData((2.5, -1.4), "SOUTHEAST"),
     "DetroitPistons": TeamData((1.8, 0.9), "CENTRAL"),
-    "NewYork": TeamData((2.9, 0.9), "ATLANTIC"),
+    "NewYorkKnicks": TeamData((2.9, 0.9), "ATLANTIC"),
     "Charlotte_Hornets": TeamData((2.3, -0.3), "SOUTHEAST"),
     "MinnesotaTimberwolves": TeamData((0.6, 0.8), "NORTHWEST"),
     "MilwaukeeBucks": TeamData((1.1, 1), "CENTRAL"),
-    "NewOrleans": TeamData((1.3, -1.4), "SOUTHWEST"),
+    "NewOrleansPelicans": TeamData((1.3, -1.4), "SOUTHWEST"),
     "AtlantaHawks": TeamData((1.8, -0.5), "SOUTHEAST"),
     "GoldenState": TeamData((-2.7, 0.2), "PACIFIC"),
     "TorontoRaptors": TeamData((3, 2.78), "ATLANTIC"),
     "BrooklynNets": TeamData((2.8, 0.8), "ATLANTIC"),
 }
 
+NORTHWEST_NAMES = ["Nuggets", "Timberwolves", "Thunder", "Blazers", "Jazz" ]
+SOUTHWEST_NAMES = ["Mavericks", "Rockets","Timberwolves", "Pelicans", "Spurs"]
 
 class MapUSA(SVGMobject):
     CONFIG = {

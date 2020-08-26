@@ -11,7 +11,7 @@ class NumberAnimation(VMobject):
     CONFIG = {
         "text_kwargs": {
             "color": "#403c3c",
-            "font": "Fjalla One",
+            "font": "DDT W00 Condensed Bold Italic",
         },
         "scale_factor": .5,
         "animation_length": 1,
@@ -176,10 +176,18 @@ class NBAScene(MovingCameraScene):
                 animations.add(increment)
         return animations
     def add_win_losses(self):
-        self.wl_box = Rectangle(width=2, height=.5, fill_color=GREEN, fill_opacity=1).set_y(-3)
-        empty_obj = Rectangle().set_xy(0, -3)
-        self.wins = NumberAnimation(empty_obj, LEFT, .5)
-        self.losses = NumberAnimation(empty_obj, RIGHT, .5)
+        x = 3.5
+        y = -2
+        self.wins_text = Text("Wins", **self.text_kwargs).scale(.8)
+        self.losses_text = Text("Losses", **self.text_kwargs).scale(.8)
+        self.wins_text.set_xy(x + self.wins_text.get_width()/2, y) 
+        self.losses_text.set_xy(x + self.losses_text.get_width()/2, y - .8) 
+        self.wl_texts = VGroup(self.wins_text, self.losses_text)
+        self.wins = NumberAnimation(self.wins_text, 2.2)
+        self.losses = NumberAnimation(self.losses_text, 1.85)
+        self.wl_divider = Line(np.array([6, y+.2, 0]), np.array([6, y-1, 0]),
+                                color="#979797", stroke_width=.5)
+        #
     def update_win_losses(self, wins, losses):
         animations = VGroup()
         animations.add(self.wins.increment(wins))
@@ -239,7 +247,6 @@ class MainMapScene(NBAScene):
     #     """Divide the US map into EASTERN & WESTERN conferences, and 
     #     give some info about both.
     #     """
-    #     pass
     
     def teams_conferences(self):
         self.teams.set_x(-5) 
