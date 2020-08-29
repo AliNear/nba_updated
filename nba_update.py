@@ -1,8 +1,8 @@
 from manimlib.imports import *
 import os
 from projects.project_one.custom_mobjects import *
-from itertools import product
-
+from itertools import product 
+import random
 ASSETS_PATH = os.path.join(os.getcwd(), "projects/nba_update_project/assets/")
 TEAMS_PATH = ASSETS_PATH + "teams/"
 # Final results for each franchise (EAST/WEST)
@@ -20,7 +20,7 @@ REGULAR_SEASON_EAST = {
 REGULAR_SEASON_WEST = {
     "GoldenState": (72, 10),
     "Denver_Nuggets": (54, 28),
-    "PortlandTrail": (53, 29),
+    "PortlandTrailBlazers": (53, 29),
     "Houston_Rockets": (53, 29),
     "UtahJazz": (50, 32),
     "Oklahoma_City_Thunder": (49, 33),
@@ -100,8 +100,8 @@ class Conference:
 
     def __init__(self):
         numbers_args = {
-            "font": "Roboto Condensed Italic",
-            "color": WHITE,
+            "font": "DDT W00 Condensed Bold Italic",
+            "color": WHITE
         }
         self.teams = []
         self.wins = VGroup(*[Text("00", **numbers_args).scale(.4)
@@ -170,7 +170,7 @@ class RankingScene(MovingCameraScene):
     """A scene showing frachise ranking in bothe conferences"""
     CONFIG = {
         "numbers_args": {
-            "font": "Roboto Condensed Italic",
+            "font": "DDT W00 Condensed Bold Italic",
             "color": WHITE,
         }
     }
@@ -184,9 +184,10 @@ class RankingScene(MovingCameraScene):
         self.add_teams()
         self.setup_conferences()
         self.animate_conferences()
-        self.animate_numbers(self.east)
-        self.animate_numbers(self.west)
-        self.animate_versus()
+        self.animate_numbers(self.east, .01)
+        self.animate_numbers(self.west, .01)
+        # self.animate_versus()
+        self.wait()
         self.rearrange_teams()
 
     def prepare(self):
@@ -266,8 +267,8 @@ class RankingScene(MovingCameraScene):
         self.rankings_east.set_xy(x_east - .5, y_conf)  # 2.02
         self.rankings_west = self.rankings_east.copy()
         self.rankings_west.set_x(x_west - .5)
-        self.rankings_east.arrange_submobjects(UP, False, False, buff=.5)
-        self.rankings_west.arrange_submobjects(UP, False, False, buff=.5)
+        self.rankings_east.arrange_submobjects(UP, False, False, buff=.65)
+        self.rankings_west.arrange_submobjects(UP, False, False, buff=.65)
 
         # Wins/losses title (W and L)
         y_titles = 2.8
@@ -329,11 +330,11 @@ class RankingScene(MovingCameraScene):
                 )
                 j += 1
 
-        conf.losses.arrange_submobjects(UP, False, False, buff=.52)
+        conf.losses.arrange_submobjects(UP, False, False, buff=.65)
         conf.losses.add_updater(updater_losses)
         self.add(conf.losses)
 
-        conf.wins.arrange_submobjects(UP, False, False, buff=.52)
+        conf.wins.arrange_submobjects(UP, False, False, buff=.65)
         conf.wins.add_updater(updater_wins)
         self.add(conf.wins)
 
@@ -379,7 +380,7 @@ class RankingScene(MovingCameraScene):
             east_line = Group(self.rankings_east[i], self.east.teams[i],
                               self.east.wins[i], self.east.losses[i])
             west_line = Group(self.rankings_west[i], self.west.teams[i],
-                              self.west.wins[i], self.east.losses[i])
+                              self.west.wins[i], self.west.losses[i])
             self.groups_east.add(east_line)
             self.groups_west.add(west_line)
         teams_animations = VGroup()
@@ -391,6 +392,7 @@ class RankingScene(MovingCameraScene):
                             self.groups_west[j], k, buff=.3)
             teams_animations.add(e, w)
         self.play(*teams_animations)
+        self.wait()
 
 
 class BlankNBAScene(RankingScene):
@@ -412,13 +414,13 @@ class BlankNBAScene(RankingScene):
         self.west.teams.arrange_submobjects(
             UP, False, False, buff=.3)
         self.east.wins.arrange_submobjects(
-            UP, False, False, buff=.52)
+            UP, False, False, buff=.65)
         self.west.wins.arrange_submobjects(
-            UP, False, False, buff=.52)
+            UP, False, False, buff=.65)
         self.east.losses.arrange_submobjects(
-            UP, False, False, buff=.52)
+            UP, False, False, buff=.65)
         self.west.losses.arrange_submobjects(
-            UP, False, False, buff=.52)
+            UP, False, False, buff=.65)
 
     def add_all(self):
         self.add(self.background, self.east_west_confs, self.playoffs)
@@ -609,7 +611,7 @@ class PlayoffsScene(BlankNBAScene):
 
         score_east_finalist.next_to(self.final_east, UP, buff=.2)
         score_west_finalist.next_to(self.final_west, UP, buff=.2)
-        font = "DDTW00-CondensedBoldItalic"
+        font = "DDT W00 Condensed Bold Italic"
         self.games_texts_args = {
             "color": WHITE,
             "font": font,
@@ -684,7 +686,7 @@ class PlayoffsScene(BlankNBAScene):
         champions = Text("NBA CHAMPIONS", plot_depth=20, **
                          self.games_texts_args).scale(.2)
         champions_year = Text("2019", plot_depth=20, color="#b8002c",
-                              font="DDTW00-CondensedBoldItalic").scale(.2)
+                              font="DDDT W00 Condensed Bold Italic").scale(.2)
         champions_year.next_to(self.finalists, DOWN, buff=.3)
         champions.move_to(self.game)
         self.add(cleaning_rect)
@@ -712,7 +714,7 @@ class Test(Scene):
         # self.wait()
         games_texts_args = {
             "color": BLACK,
-            "font": "DDTW00-CondensedItalic",
+            "font": "DDT W00 Condensed Bold Italic",
         }
         game_text = Text("Game", **games_texts_args)
         self.play(Write(game_text))
