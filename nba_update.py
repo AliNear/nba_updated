@@ -686,7 +686,7 @@ class PlayoffsScene(BlankNBAScene):
         champions = Text("NBA CHAMPIONS", plot_depth=20, **
                          self.games_texts_args).scale(.2)
         champions_year = Text("2019", plot_depth=20, color="#b8002c",
-                              font="DDDT W00 Condensed Bold Italic").scale(.2)
+                              font="DDT W00 Condensed Bold Italic").scale(.2)
         champions_year.next_to(self.finalists, DOWN, buff=.3)
         champions.move_to(self.game)
         self.add(cleaning_rect)

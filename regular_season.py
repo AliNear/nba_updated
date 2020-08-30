@@ -1,6 +1,6 @@
 from manimlib.imports import *
 from projects.nba_update_project.usa_map import NBAScene
-
+from projects.nba_update_project.nba_update import TwoRects
 from projects.project_one.custom_mobjects import *
 from projects.nba_update_project.consts_defs import *
 import os
@@ -109,6 +109,8 @@ class DivisionScene(NBAScene):
             team.scale, 2,
         )
         if index == start:
+            if hasattr(self, "total"):
+                self.play(FadeOut(self.total), FadeOut(self.home_away))
             self.add_games_description(home, away)
         games = [0, 0, 0, total]
         games[field] = total
@@ -164,7 +166,7 @@ class DivisionScene(NBAScene):
         for i in range(DIVISION_COUNT):
             h, a = home_away[i]
             #This is just to change the games desciption when passing to 3 games
-            start = (h + a) % 4
+            start = (i // 3) * 3
             self.single_matchup(i, start=start, home=h, away=a, field=1)
         
     def eatern_conf(self):
@@ -186,6 +188,82 @@ class DivisionScene(NBAScene):
         self.play(Transform(self.division_name, new_name))
         for i in range(CONFERENCE_COUNT):
             self.single_matchup(i, start=0, home=1, away=1, field=2)
+        self.wait()
+
+class EndRegularSeason(NBAScene):
+    def __init__(self, **kwargs):
+        NBAScene.__init__(self, **kwargs)
+    def construct(self):
+        self.prepare()
+        self.add_foundation()
+        self.update_numbers()
+        self.clear_scene()
+        self.rearrange_teams()
+
+    def prepare(self): 
+        self.add_teams("ATLANTIC")
+        teams = self.teams
+        self.team_names = None
+        self.add_teams("CENTRAL")
+        teams = Group(*teams, *self.teams)
+        self.add_teams("SOUTHEAST")
+        teams = Group(*teams, *self.teams)
+        self.teams = teams
+        self.teams.set_xy(-6.2, -3)
+        self.teams.arrange_in_grid(buff=.5)
+        self.teams.shift(.7 * DOWN)
+ 
+    def add_foundation(self):
+        new_division_name = Text("EASTERN CONFERENCE", **self.text_kwargs).scale(.6)
+        new_division_name.move_to(self.box)
+        self.division_name.become(new_division_name)
+        self.remove(new_division_name)
+        self.add(self.teams)
+        self.add(self.title)
+        self.add(self.wireframe)
+        self.add(self.box)
+        self.add(self.division_name)
+        self.add(self.categories)
+        self.add(self.box_divider)
+        self.add(self.numbers)
+        self.add(self.wl_texts)
+        self.add(self.wl_divider, self.wl_h_divider)
+        self.add(self.wins, self.losses)
+
+    def update_numbers(self):
+        animations = self.updade_games_count([16, 36, 30, 82])
+        self.play(*animations)
+        animations = self.update_win_losses(57, 25)
+        self.play(*animations)
+        self.wait()
+
+    def clear_scene(self):
+        self.play(FadeOut(self.wireframe))
+        self.play(FadeOut(self.box), FadeOut(self.division_name))
+        self.play(FadeOut(self.categories), FadeOut(self.numbers), FadeOut(self.box_divider))
+        self.play(FadeOut(self.wl_texts), FadeOut(self.wl_divider), FadeOut(self.wl_h_divider))
+        self.play(FadeOut(self.wins), FadeOut(self.losses))
+
+
+    def rearrange_teams(self):
+        ranks = ["Raptors", "Bucks", "Celtics", "76ers", "Magic", "Hawks", "Heat", "Nets", "Knicks", "Bulls", "Hornets", "Pacers", "Wizards", "Cavaliers", "Pistons"]
+        new_teams = [i for i in range(15)]
+        self.play(self.teams.scale, .7)
+        for i in self.teams:
+            for j in range(15):
+                if i.name.find(ranks[j]) != -1:
+                    new_teams[j] = i
+
+        self.teams = Group(*new_teams)
+        self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.13})
+        vector = 5.2 * UP + 8 * RIGHT
+        self.play(self.teams.shift, vector)
+        self.wait()
+        self.bg = TwoRects(plot_depth=-10)
+        self.play(FadeInFrom(self.bg, 5 * DOWN))
+        self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.53})
+        self.wait()
+
 
 
 # class Test(Scene):

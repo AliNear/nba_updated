@@ -145,7 +145,7 @@ TEAMS_POSITIONS = {
     "NewOrleansPelicans": TeamData((1.3, -1.4), "SOUTHWEST"),
     "AtlantaHawks": TeamData((1.8, -0.5), "SOUTHEAST"),
     "GoldenState": TeamData((-2.7, 0.2), "PACIFIC"),
-    "TorontoRaptors": TeamData((3, 2.78), "ATLANTIC"),
+    "TorontoRaptors": TeamData((3, 2.48), "ATLANTIC"),
     "BrooklynNets": TeamData((2.8, 0.8), "ATLANTIC"),
 }
 
@@ -213,5 +213,11 @@ class MapUSA(SVGMobject):
         for i in portion:
             j = STATES[i]
             self.al[j].shift(direction)
+    def color_all(self, color=EAST_COLOR):
+        self.al[0].set_fill(color)
+        self.al[0].set_stroke(BLACK, width=2)
+        self.al[0].set_opacity(1)
+
+
 
 

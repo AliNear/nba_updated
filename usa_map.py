@@ -125,7 +125,7 @@ class NBAScene(MovingCameraScene):
         self.division_name = Text("PACIFIC DIVISION", **self.text_kwargs).scale(.6)
         self.division_name.move_to(self.box)
 
-    def add_games_count(self, count=3):
+    def add_games_count(self):
         """This method add a table like object to hold different games 
         count, ex: In Division, Other Division, ...
 
@@ -210,11 +210,18 @@ class MainMapScene(NBAScene):
         self.add_teams("ALL")
         self.teams_conferences()
         self.to_division()
+        # self.final_transition()
     
     def prepare(self):
         self.map = MapUSA(ASSETS_PATH + "us.svg")
+        self.toronto_map = MapUSA(ASSETS_PATH + "toronto.svg").scale(.3)
         self.map.set_x(-0.3)
+        self.toronto_map.set_x(5)
+        self.toronto_map.set_y(2.8)
+
         self.play(FadeIn(self.map))
+        self.wait()
+        self.play(FadeInFrom(self.toronto_map, 4 * UP))
 
     def general_info(self):
         """Give general information about the NBA, ie: number of teams,
@@ -236,6 +243,7 @@ class MainMapScene(NBAScene):
         self.conf_teams = VGroup(self.conf_teams_west, self.conf_teams_east)
         #coloring each conference
         self.map.color_east()
+        self.toronto_map.color_all()
         self.map.color_west()
         self.wait()
         self.img_east = Avatar(ASSETS_PATH + "east.png", 5, .5, .5)
@@ -304,22 +312,49 @@ class MainMapScene(NBAScene):
         """Divide the map into the six (06) divisions"""
         self.add_to_division()
         self.play(self.map.shift, 2 * LEFT,
-                  self.teams.shift, 2 * LEFT)
+                  self.teams.shift, 2 * LEFT,
+                  self.toronto_map.shift, 2 * LEFT)
         amount = 1.8
+        self.division_texts = VGroup()
         def move_division(division, direction, div_str):
-            #TODO: Add division title
+            #Not really proud of this one
             text = Text(div_str + "\nDIVISION", **self.text_kwargs).scale(.6).move_to(1.85 * amount * direction)
-            self.play(
-                self.map.move_portion, division, direction,
-                self.img_division[div_str].shift, direction,
-                Write(text)
-            )
+            if div_str != "ATLANTIC":
+                self.play(
+                    self.map.move_portion, division, direction,
+                    self.img_division[div_str].shift, direction,
+                    Write(text)
+                )
+            else:
+                self.play(
+                    self.map.move_portion, division, direction,
+                    self.img_division[div_str].shift, direction,
+                    Write(text),
+                    self.toronto_map.shift, .6 * UP + amount * RIGHT
+                )
+            if div_str != PACIFIC:
+                self.division_texts.add(text)
         move_division(SOUTHEAST, DOWN + amount * RIGHT, "SOUTHEAST")
         move_division(SOUTHWEST, DOWN, "SOUTHWEST")
         move_division(PACIFIC, DOWN + amount * LEFT, "PACIFIC")
         move_division(NORTHWEST, UP + amount * LEFT, "NORTHWEST")
         move_division(CENTRAL, UP, "CENTRAL")
         move_division(ATLANTIC, UP + amount * RIGHT, "ATLANTIC")
+    
+    def final_transition(self):
+        self.play(FadeOut(self.division_texts))
+        removed_imgs = Group()
+        self.pacific = Group()
+        for i in self.img_division.keys():
+            if i != "PACIFIC":
+                removed_imgs.add(self.img_division[i])
+            else:
+                self.pacific.add(self.img_division[i])
+        
+        self.play(FadeOut(removed_imgs))
+        self.play(FadeOut(self.map))
+        self.pacific[0].set_xy(-6, 1)
+        self.play(self.pacific[0].arrange_submobjects, DOWN, False, False, {"buff":.4})
         
 
 class Test(Scene):
