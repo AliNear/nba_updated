@@ -152,6 +152,14 @@ TEAMS_POSITIONS = {
 NORTHWEST_NAMES = ["Nuggets", "Timberwolves", "Thunder", "Blazers", "Jazz" ]
 SOUTHWEST_NAMES = ["Mavericks", "Rockets","Timberwolves", "Pelicans", "Spurs"]
 
+EASTERN_CONF_RANKING = ["Bucks", "Raptors", "76ers", "Celtics", "Pacers", "Nets", "Magic", "Pistons",
+                        "Hornets", "Heat", "Wizards", "Hawks", "Bulls", "Cavaliers", "Knicks"]
+EASTERN_CONF_WINS = [60, 58, 51, 49, 48, 42, 42, 41, 39, 39, 32, 29, 22, 19, 17]
+
+WESTERN_CONF_RANKING = ["GoldenState", "Nuggets", "Blazers", "Rockets", "Jazz", "Thunder", "Spurs", "Clippers",
+                        "Kings", "Lakers", "Timberwolves", "Grizzlies", "Pelicans", "Mavericks", "Suns"]
+WESTERN_CONF_WINS = [57, 54, 53, 53, 50, 49, 48, 48, 39, 37, 36, 33, 33, 33, 19]
+
 class MapUSA(SVGMobject):
     CONFIG = {
         "fill_opacity": 0.0,

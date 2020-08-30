@@ -80,8 +80,10 @@ class NBAScene(MovingCameraScene):
         self.add_games_count()
         self.add_win_losses()
 
-    def add_teams(self, division):
+    def add_teams(self, division, west=False):
         self.teams = Group()
+        if west:
+            self.teams_west = Group()
         all_files = os.listdir(ASSETS_PATH + '/teams')
         all_files = [i for i in all_files if i.startswith('.') is False]
 
@@ -96,7 +98,10 @@ class NBAScene(MovingCameraScene):
                     team.position = TEAMS_POSITIONS[team_name].pos
                     team.division = TEAMS_POSITIONS[team_name].division
                 team.name = team_name
-                self.teams.add(team)
+                if west:
+                    self.teams_west.add(team)
+                else:
+                    self.teams.add(team)
                     
     def add_wireframe(self):
         """This method draws the lines that seperates different parts of the scene

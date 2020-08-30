@@ -128,15 +128,17 @@ class TwoRects(VMobject):
     def __init__(self, **kwargs):
         VMobject.__init__(self, **kwargs)
         x, y = 10, 5
+        west_color = "#1c3f87"
+        east_color = "#b8002c"
         points_left = [(-x, y), (0, y), (0, -y), (-x, -y)]
         points_right = [(x, y), (0, y), (0, -y), (x, -y)]
         points_left = [np.array([i, j, 0]) for i, j in points_left]
         points_right = [np.array([i, j, 0]) for i, j in points_right]
 
-        self.east_rect = Polygon(*points_left, fill_color="#1c3f87",
+        self.east_rect = Polygon(*points_right, fill_color=east_color,
                                  fill_opacity=1, stroke_width=0)
 
-        self.west_rect = Polygon(*points_right, fill_color="#b8002c",
+        self.west_rect = Polygon(*points_left, fill_color=west_color,
                                  fill_opacity=1, stroke_width=0)
         self.add(self.east_rect, self.west_rect)
 
@@ -187,7 +189,7 @@ class RankingScene(MovingCameraScene):
         self.animate_numbers(self.east, .01)
         self.animate_numbers(self.west, .01)
         # self.animate_versus()
-        self.wait()
+        # self.wait()
         self.rearrange_teams()
 
     def prepare(self):
@@ -198,9 +200,9 @@ class RankingScene(MovingCameraScene):
         box_east = Rectangle(
             fill_color=WHITE, fill_opacity=1, width=1.1, height=.7)
         x_box, y_box = 6, 3.4
-        box_east.set_xy(-x_box, y_box)
+        box_east.set_xy(x_box, y_box)
         box_west = box_east.copy()
-        box_west.set_x(x_box)
+        box_west.set_x(-x_box)
         # east and west confs images
         east_icon = Avatar(ASSETS_PATH + "east0.png", 0, 0, .3)
         west_icon = Avatar(ASSETS_PATH + "west.png", 0, 0, .3)
@@ -248,8 +250,8 @@ class RankingScene(MovingCameraScene):
 
     def setup_conferences(self):
         """Here we set up the coordinates for each conf"""
-        x_east = -(FRAME_WIDTH / 2 - 2)
-        x_west = 2
+        x_west = -(FRAME_WIDTH / 2 - 2)
+        x_east = 2
         y_conf = -3.5
         self.east.teams.set_xy(x_east, y_conf)
         self.west.teams.set_xy(x_west, y_conf)
@@ -346,10 +348,10 @@ class RankingScene(MovingCameraScene):
         alpha = ValueTracker(0)
         amount_x = np.array([1, 0, 0])
         amount_y = np.array([0, .8, 0])
-        start_east = np.array([-5.82, 2.05, 0]) - amount_x
-        start_west = np.array([1.26, 2.05, 0]) - amount_x
-        end_east = np.array([-5.82, -3.47, 0]) - amount_x
-        end_west = np.array([1.26, -3.47, 0]) - amount_x
+        start_west = np.array([-5.82, 2.05, 0]) - amount_x
+        start_east = np.array([1.26, 2.05, 0]) - amount_x
+        end_west = np.array([-5.82, -3.47, 0]) - amount_x
+        end_east = np.array([1.26, -3.47, 0]) - amount_x
 
         versus_line_east = TwoTipsBrokenLine(start_east, end_east)
         versus_line_west = TwoTipsBrokenLine(start_west, end_west)

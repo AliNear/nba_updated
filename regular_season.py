@@ -22,6 +22,11 @@ def get_cross_line(obj, overflow=.2):
     start = center - width - (overflow * RIGHT)
     end = center + width + (overflow * RIGHT)
     return Line(start, end)
+class Conference:
+    def __init__(self, teams, wins):
+        self.teams = teams
+        self.wins_raw = wins
+        self.losses_raw = [(82-i) for i in wins]
 
 class DivisionScene(NBAScene):
     CONIFG = {
@@ -191,16 +196,37 @@ class DivisionScene(NBAScene):
         self.wait()
 
 class EndRegularSeason(NBAScene):
+    CONFIG = {
+        "numbers_args": {
+            "font": "DDT W00 Condensed Bold Italic",
+            "color": WHITE,
+        }
+    }
+
     def __init__(self, **kwargs):
         NBAScene.__init__(self, **kwargs)
     def construct(self):
         self.prepare()
-        self.add_foundation()
-        self.update_numbers()
-        self.clear_scene()
-        self.rearrange_teams()
+        # self.add_foundation()
+        # self.update_numbers()
+        # self.clear_scene()
+        self.rearrange_teams(self.teams, EASTERN_CONF_RANKING)
+        self.rearrange_teams(self.teams_west, WESTERN_CONF_RANKING, east=False)
+        self.animate_east()
+        #self.add_wl()
+        self.to_playoffs()
 
     def prepare(self): 
+
+        #Western Conference
+        self.add_teams("PACIFIC", west=True)
+        west_teams = self.teams_west
+        self.add_teams("NORTHWEST", west=True)
+        west_teams = Group(*west_teams, *self.teams_west)
+        self.add_teams("SOUTHWEST", west=True)
+        west_teams = Group(*west_teams, *self.teams_west)
+        self.teams_west = west_teams
+        #Eastern Conference
         self.add_teams("ATLANTIC")
         teams = self.teams
         self.team_names = None
@@ -212,7 +238,9 @@ class EndRegularSeason(NBAScene):
         self.teams.set_xy(-6.2, -3)
         self.teams.arrange_in_grid(buff=.5)
         self.teams.shift(.7 * DOWN)
- 
+        self.add_playoffs_mobjects()
+    
+
     def add_foundation(self):
         new_division_name = Text("EASTERN CONFERENCE", **self.text_kwargs).scale(.6)
         new_division_name.move_to(self.box)
@@ -244,24 +272,165 @@ class EndRegularSeason(NBAScene):
         self.play(FadeOut(self.wl_texts), FadeOut(self.wl_divider), FadeOut(self.wl_h_divider))
         self.play(FadeOut(self.wins), FadeOut(self.losses))
 
+    def add_playoffs_mobjects(self):
+        box_east = Rectangle(
+            fill_color=WHITE, fill_opacity=1, width=1.1, height=.7)
+        x_box, y_box = 6, 3.5
+        box_east.set_xy(x_box, y_box)
+        box_west = box_east.copy()
+        box_west.set_x(-x_box)
+        # east and west confs images
+        east_icon = Avatar(ASSETS_PATH + "east0.png", 0, 0, .3)
+        west_icon = Avatar(ASSETS_PATH + "west.png", 0, 0, .3)
 
-    def rearrange_teams(self):
-        ranks = ["Raptors", "Bucks", "Celtics", "76ers", "Magic", "Hawks", "Heat", "Nets", "Knicks", "Bulls", "Hornets", "Pacers", "Wizards", "Cavaliers", "Pistons"]
+        self.east_west_confs = Group(box_east, east_icon, box_west, west_icon)
+
+        east_icon.move_to(box_east)
+        west_icon.move_to(box_west)
+        box_playoffs = Rectangle(fill_color=WHITE, fill_opacity=1,
+                                 width=2, height=.4).set_xy(0, 3.5)
+        playoffs = Avatar(ASSETS_PATH + "nba-playoffs-2.png", 0, 3.5, .15)
+        self.playoffs = Group(box_playoffs, playoffs)
+
+
+    def rearrange_teams(self, teams, ranking, east=True):
         new_teams = [i for i in range(15)]
-        self.play(self.teams.scale, .7)
-        for i in self.teams:
+        for i in teams:
             for j in range(15):
-                if i.name.find(ranks[j]) != -1:
+                if i.name.find(ranking[j]) != -1:
                     new_teams[j] = i
+        if east:
+            self.teams = Group(*new_teams)
+        else:
+            self.teams_west = Group(*new_teams)
 
-        self.teams = Group(*new_teams)
+    def animate_east(self):
+        self.play(self.teams.scale, .7)
+        self.teams_west.scale(.7)
+        texts = [Text(str(i) + ".", **self.numbers_args).scale(.3)
+                 for i in range(1, 16)]
+        self.x_east = 2
+        self.x_west = -(FRAME_WIDTH / 2 - 2)
+        self.y_conf = 3.05
+ 
+        self.rankings_east = VGroup(*texts)
+        self.rankings_east.set_xy(self.x_east - .5, self.y_conf)  # 2.02
+        self.rankings_east.arrange_submobjects(DOWN, False, False, buff=.365)
+        self.rankings_west = self.rankings_east.copy().set_x(self.x_west - .5)
+        self.teams_west.set_xy(self.x_west, self.y_conf)
         self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.13})
-        vector = 5.2 * UP + 8 * RIGHT
-        self.play(self.teams.shift, vector)
+        
+        vector = 2 * RIGHT + .3 * DOWN
+        self.play(self.teams.move_to, vector)
+        self.play(self.teams_west.arrange_submobjects, DOWN, False, False, {"buff":.13})
         self.wait()
         self.bg = TwoRects(plot_depth=-10)
         self.play(FadeInFrom(self.bg, 5 * DOWN))
-        self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.53})
+        self.play(FadeInFrom(self.east_west_confs,
+                             direction=3 * UP, rate_function=rush_into))
+
+        self.play(FadeIn(self.rankings_east), FadeIn(self.rankings_west))
+        self.wait()
+    def add_wl(self):
+        y_titles = 3.5
+        wins_title_east = Text("W", **self.numbers_args).scale(.45)
+        wins_title_east.set_xy(self.x_east + 1, y_titles)
+        losses_title_east = Text("L", **self.numbers_args).scale(.45)
+        losses_title_east.set_xy(self.x_east + 2, y_titles)
+        wins_title_west = wins_title_east.copy().set_x(self.x_west + 1)
+        losses_title_west = losses_title_east.copy().set_x(self.x_west + 2)
+
+        self.wins_losses = VGroup(wins_title_east, losses_title_east,
+                                  wins_title_west, losses_title_west)
+
+        self.eastern_conf = Conference(self.teams, EASTERN_CONF_WINS)
+        self.western_conf = Conference(self.teams_west, WESTERN_CONF_WINS)
+        wl_numbers = VGroup(*[Text("00", **self.numbers_args).scale(.3)
+                 for i in range(1, 16)])
+        east_wins = wl_numbers.copy()
+        east_losses = wl_numbers.copy()
+        west_wins = wl_numbers.copy()
+        west_losses = wl_numbers.copy()
+        
+        east_wins.set_xy(self.x_east + 1, self.y_conf)
+        east_losses.set_xy(self.x_east + 2, self.y_conf)
+        west_wins.set_xy(self.x_west + 1, self.y_conf)
+        west_losses.set_xy(self.x_west + 2, self.y_conf)
+
+        self.eastern_conf.wins = east_wins
+        self.eastern_conf.losses = east_losses
+        self.western_conf.wins = west_wins
+        self.western_conf.losses = west_losses
+
+
+        self.play(FadeInFrom(self.wins_losses, 3 * UP))
+        self.animate_numbers(self.eastern_conf, .1)
+        self.animate_numbers(self.western_conf, .1)
+
+    def to_playoffs(self):
+        y_divider = -.5
+        x_start_east = -6
+        x_start_west = 1.1
+        length = 3.5
+        start_east = np.array([x_start_east, y_divider, 0])
+        end_east = start_east + length * RIGHT
+        start_west = np.array([x_start_west, y_divider, 0])
+        end_west = start_west + length * RIGHT
+        east_divider = Line(start_east, end_east, color=WHITE)
+        west_divider = Line(start_west, end_west, color=WHITE)
+        dividers = VGroup(east_divider, west_divider)
+        self.play(ShowCreation(dividers))
+        
+        self.play(FadeInFrom(self.playoffs,
+                             direction=UP, rate_function=rush_into))
+        east_rearrange = ApplyMethod(self.teams.arrange_submobjects, DOWN, False, False, buff=.3) 
+        west_rearrange = ApplyMethod(self.teams_west.arrange_submobjects, DOWN, False, False, buff=.3) 
+        east_text_rearrange = ApplyMethod(self.rankings_east.arrange_submobjects, DOWN, False, False, buff=.6) 
+        east_down = ApplyMethod(self.teams.shift, 2 * DOWN)
+        west_down = ApplyMethod(self.teams_west.shift, 2 * DOWN)
+        self.play(east_rearrange, west_rearrange, east_down, west_down)
+        self.play(self.teams.scale, 1/.7,
+                  self.teams_west.scale, 1/.7,
+                  self.rankings_east.scale, 4/3)
+ 
+    def animate_numbers(self, conf, animation_time=2):
+        """Animate wins/losses numbers from 0 to their actual values
+        Parameters
+        ----------
+        conf: Conference
+            The conference to add animation to its W/L
+        """
+        alpha = ValueTracker(0)
+
+        def updater_wins(g):
+            j = 0
+            for i in g:
+                x, y, z = i.get_center()
+                txt = str(int(alpha.get_value() * conf.wins_raw[j]))
+                i.become(
+                    Text(txt, **self.numbers_args).set_xy(x, y).scale(.4)
+                )
+                j += 1
+
+        def updater_losses(g):
+            j = 0
+            for i in g:
+                x, y, z = i.get_center()
+                txt = str(int(alpha.get_value() * 50))
+                i.become(
+                    Text(txt, **self.numbers_args).set_xy(x, y).scale(.4)
+                )
+                j += 1
+
+        conf.losses.arrange_submobjects(DOWN, False, False, buff=.365)
+        conf.losses.add_updater(updater_losses)
+        self.add(conf.losses)
+
+        conf.wins.arrange_submobjects(DOWN, False, False, buff=.365)
+        conf.wins.add_updater(updater_wins)
+        self.add(conf.wins)
+
+        self.play(alpha.increment_value, 1, run_time=animation_time)
         self.wait()
 
 
