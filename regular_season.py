@@ -213,7 +213,7 @@ class EndRegularSeason(NBAScene):
         self.rearrange_teams(self.teams, EASTERN_CONF_RANKING)
         self.rearrange_teams(self.teams_west, WESTERN_CONF_RANKING, east=False)
         self.animate_east()
-        #self.add_wl()
+        self.add_wl()
         self.to_playoffs()
 
     def prepare(self): 
@@ -364,8 +364,8 @@ class EndRegularSeason(NBAScene):
 
 
         self.play(FadeInFrom(self.wins_losses, 3 * UP))
-        self.animate_numbers(self.eastern_conf, .1)
-        self.animate_numbers(self.western_conf, .1)
+        self.animate_numbers(self.eastern_conf, .01)
+        self.animate_numbers(self.western_conf, .01)
 
     def to_playoffs(self):
         y_divider = -.5
@@ -380,19 +380,49 @@ class EndRegularSeason(NBAScene):
         west_divider = Line(start_west, end_west, color=WHITE)
         dividers = VGroup(east_divider, west_divider)
         self.play(ShowCreation(dividers))
+        self.wait()
+        self.play(FadeOut(dividers))
         
         self.play(FadeInFrom(self.playoffs,
                              direction=UP, rate_function=rush_into))
-        east_rearrange = ApplyMethod(self.teams.arrange_submobjects, DOWN, False, False, buff=.3) 
-        west_rearrange = ApplyMethod(self.teams_west.arrange_submobjects, DOWN, False, False, buff=.3) 
+        east_rearrange = ApplyMethod(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.4}) 
+        west_rearrange = ApplyMethod(self.teams_west.arrange_submobjects, DOWN, False, False, buff=.9) 
         east_text_rearrange = ApplyMethod(self.rankings_east.arrange_submobjects, DOWN, False, False, buff=.6) 
-        east_down = ApplyMethod(self.teams.shift, 2 * DOWN)
-        west_down = ApplyMethod(self.teams_west.shift, 2 * DOWN)
-        self.play(east_rearrange, west_rearrange, east_down, west_down)
+        amount = 2.4664 * DOWN
+        east_down = ApplyMethod(self.teams.shift, amount)
+        west_down = ApplyMethod(self.teams_west.shift, amount)
+        ranks_down_east = ApplyMethod(self.rankings_east.shift, 2.15 * DOWN)
+        ranks_down_west = ApplyMethod(self.rankings_west.shift, 2.15 * DOWN)
+
+        down_w_e = ApplyMethod(self.eastern_conf.wins.shift, 2.15 * DOWN)
+        down_l_e = ApplyMethod(self.eastern_conf.losses.shift, 2.15 * DOWN)
+        down_w_w = ApplyMethod(self.western_conf.wins.shift, 2.15 * DOWN)
+        down_w_l = ApplyMethod(self.western_conf.losses.shift, 2.15 * DOWN)
+        down_wl_title = ApplyMethod(self.wins_losses.shift, .7 * DOWN)
+
         self.play(self.teams.scale, 1/.7,
                   self.teams_west.scale, 1/.7,
-                  self.rankings_east.scale, 4/3)
- 
+                  self.rankings_east.scale, 4/3,
+                  self.rankings_west.scale, 4/3,
+                  self.eastern_conf.wins.scale, 4/3,
+                  self.eastern_conf.losses.scale, 4/3,
+                  self.western_conf.wins.scale, 4/3,
+                  self.western_conf.losses.scale, 4/3,
+                  )
+        self.play(east_down, west_down, ranks_down_east, ranks_down_west,
+                  down_w_e, down_l_e, down_w_w, down_w_l, down_wl_title)
+        self.play(
+            self.teams.arrange_submobjects, DOWN, False, False, {"buff":.3},
+            self.teams_west.arrange_submobjects, DOWN, False, False, {"buff":.3},
+            self.rankings_east.arrange_submobjects, DOWN, False, False, {"buff":.65},
+            self.rankings_west.arrange_submobjects, DOWN, False, False, {"buff":.65},
+            self.eastern_conf.wins.arrange_submobjects, DOWN, False, False, {"buff":.65},
+            self.eastern_conf.losses.arrange_submobjects, DOWN, False, False, {"buff":.65},
+            self.western_conf.wins.arrange_submobjects, DOWN, False, False, {"buff":.65},
+            self.western_conf.losses.arrange_submobjects, DOWN, False, False, {"buff":.65},
+
+        )
+
     def animate_numbers(self, conf, animation_time=2):
         """Animate wins/losses numbers from 0 to their actual values
         Parameters

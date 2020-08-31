@@ -74,7 +74,7 @@ class NBAScene(MovingCameraScene):
         self.background = Avatar(self.background_img, 0, 0, 6, plot_depth=-10)
         self.add(self.background)
         self.title = Text("REGULAR SEASON", **self.title_kwargs).scale(.8)
-        self.title.set_xy(0, 3.5)
+        self.title.set_xy(0, 3.6)
         self.add_wireframe()
         self.add_divison_title()
         self.add_games_count()

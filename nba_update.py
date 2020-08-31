@@ -186,11 +186,11 @@ class RankingScene(MovingCameraScene):
         self.add_teams()
         self.setup_conferences()
         self.animate_conferences()
-        self.animate_numbers(self.east, .01)
-        self.animate_numbers(self.west, .01)
+        # self.animate_numbers(self.east, .01)
+        # self.animate_numbers(self.west, .01)
         # self.animate_versus()
         # self.wait()
-        self.rearrange_teams()
+        # self.rearrange_teams()
 
     def prepare(self):
         """Adding background to the scene and other elements + variable
