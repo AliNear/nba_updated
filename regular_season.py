@@ -207,9 +207,9 @@ class EndRegularSeason(NBAScene):
         NBAScene.__init__(self, **kwargs)
     def construct(self):
         self.prepare()
-        # self.add_foundation()
-        # self.update_numbers()
-        # self.clear_scene()
+        self.add_foundation()
+        self.update_numbers()
+        self.clear_scene()
         self.rearrange_teams(self.teams, EASTERN_CONF_RANKING)
         self.rearrange_teams(self.teams_west, WESTERN_CONF_RANKING, east=False)
         self.animate_east()
@@ -364,8 +364,8 @@ class EndRegularSeason(NBAScene):
 
 
         self.play(FadeInFrom(self.wins_losses, 3 * UP))
-        self.animate_numbers(self.eastern_conf, .01)
-        self.animate_numbers(self.western_conf, .01)
+        self.animate_numbers(self.eastern_conf, 1)
+        self.animate_numbers(self.western_conf, 1)
 
     def to_playoffs(self):
         y_divider = -.5
@@ -381,7 +381,7 @@ class EndRegularSeason(NBAScene):
         dividers = VGroup(east_divider, west_divider)
         self.play(ShowCreation(dividers))
         self.wait()
-        self.play(FadeOut(dividers))
+        self.play(FadeOut(dividers), FadeOut(self.title))
         
         self.play(FadeInFrom(self.playoffs,
                              direction=UP, rate_function=rush_into))
@@ -446,7 +446,7 @@ class EndRegularSeason(NBAScene):
             j = 0
             for i in g:
                 x, y, z = i.get_center()
-                txt = str(int(alpha.get_value() * 50))
+                txt = str(int(alpha.get_value() * conf.losses_raw[j]))
                 i.become(
                     Text(txt, **self.numbers_args).set_xy(x, y).scale(.4)
                 )
