@@ -2,6 +2,7 @@ from manimlib.imports import *
 import os
 import re
 from projects.project_one.custom_mobjects import *
+from projects.nba_update_project.consts_defs import *
 
 ASSETS_PATH = os.getcwd() + '/projects/nba_update_project/assets/'
 LOADING_COLOR = "#efeff0"
@@ -80,6 +81,7 @@ class MotivationScene(MovingCameraScene):
         self.show_different_formats()
         self.explanation_soccer_format()
         self.back_to_us()
+        self.draw_planes()
 
     def prepare(self):
         """Assests prepation (mainly the world map and a backgroudn?)
@@ -143,25 +145,82 @@ class MotivationScene(MovingCameraScene):
             self.camera_frame.move_to, self.us_copy,
         )
         self.play(FadeOut(self.world_map))
-        self.play(Transform(self.us_copy, self.usa_map))
+        self.play(Transform(self.us_copy, self.usa_map), run_time=.5)
         la_city = self.usa_map.get_center() - (self.usa_map.get_width() * .34) * RIGHT
         mew_city = self.usa_map.get_center() + (self.usa_map.get_width() * .44) * RIGHT
-        la_point = Dot(la_city, color=RED).scale(.3)
-        mew_point = Dot(mew_city, color=RED).scale(.3)
-        self.play(ShowCreation(la_point))
-        self.play(ShowCreation(mew_point))
+        self.la_point = Dot(la_city, color=BLUE_D).scale(.3)
+        self.mew_point = Dot(mew_city, color=BLUE_D).scale(.3)
+        self.play(ShowCreation(self.la_point))
+        self.play(ShowCreation(self.mew_point))
         self.wait()
 
-        airplane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.1)
-        airplane.move_to(la_point)
+        self.airplane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.1)
+        self.airplane.move_to(self.la_point)
         between_cities = ArcBetweenPoints(la_city, mew_city,angle=-PI/6, color=GREEN)
-        between_cities_dashed = DashedVMobject(between_cities)
-        self.play(ShowCreation(between_cities_dashed))
-        self.play(FadeIn(airplane))
-        self.play(MoveAlongPath(airplane, between_cities), run_time=2, rate_func=linear)
+        self.between_cities_dashed = DashedVMobject(between_cities)
+        self.play(ShowCreation(self.between_cities_dashed))
+        self.play(FadeIn(self.airplane))
+        self.play(self.airplane.rotate, -10 * DEGREES,
+                  MoveAlongPath(self.airplane, between_cities), run_time=2, rate_func=linear)
 
     def draw_planes(self):
-        pass
+        self.play(FadeOut(self.airplane), FadeOut(self.between_cities_dashed), FadeOut(self.mew_point))
+        center = self.usa_map.get_center()
+        width = self.usa_map.get_width()
+        height = self.usa_map.get_height()
+        def to_new_coords(point, x_bias=.2):
+            x = (point[0] + center[0]) / 2.6
+            y = (point[1] + center[1]) / 2.4
+            return np.array([x - x_bias, y + .9, 0])
+        dots = VGroup()
+        circles = VGroup()
+        opacities = {"PACIFIC":1, "NORTHWEST": .6, "SOUTHWEST": .6, "ATLANTIC":.3, "SOUTHEAST": .3, "CENTRAL": .3}
+        for i in TEAMS_POSITIONS:
+            point = TEAMS_POSITIONS[i].pos
+            if i == "PortlandTrailBlazers":
+                res_point = to_new_coords(point, x_bias=0)
+            elif i == "TorontoRaptors":
+                pass
+            else:
+                res_point = to_new_coords(point)
+            opacity = opacities[TEAMS_POSITIONS[i].division]
+            c = Circle(fill_color="FF0000", fill_opacity=opacity, radius=.4).scale(.2)
+            d = Dot(res_point, color=RED).scale(.3)
+            c.set_stroke(width=0)
+            c.move_to(res_point)
+            dots.add(d)
+            circles.add(c)
+            print (res_point)
+
+        rects = VGroup()
+        texts_objects = VGroup()
+        x = -2.2
+        y = 2.5
+        opacities = 1, .6, .3
+        texts = ["Maximum", "Medium", "Low"]
+        for i in range(3):
+            r = Rectangle(fill_color="FF0000", fill_opacity=opacities[i]).scale(.05)
+            t = Text(texts[i] + " Matchups", font="DDT W00 Regulat", color=BLACK).scale(.1)
+            r.set_stroke(width=0)
+            r.set_xy(x, y)
+            y -= .2
+            rects.add(r)
+            t.next_to(r, direction=RIGHT, buff=.1)
+            texts_objects.add(t)
+        self.play(ShowCreation(dots))
+        lines = VGroup()
+        for i in [6, 7, 11, 14, 24]:
+            between_cities = ArcBetweenPoints(self.la_point.get_center(), dots[i].get_center(),angle=-PI/6, color=GREEN)
+            between_cities_dashed = DashedVMobject(between_cities)
+            lines.add(between_cities_dashed)
+            self.play(ShowCreation(between_cities_dashed), run_time=.5)
+        self.wait()
+        self.play(FadeOut(lines))
+        self.wait()
+        self.play(Transform(dots, circles))
+        self.play(ShowCreation(rects), ShowCreation(texts_objects))
+        # self.play(Restore(self.camera_frame))
+
 
 
 class AvatarSVG(SVGMobject):
@@ -213,10 +272,33 @@ class AvatarSVG(SVGMobject):
             self.color_country(i, color=color)
 
 
-class Test():
+class Test(Scene):
     def construct(self):
         airplane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.5)
-        arc = ArcBetweenPoints(DOWN + 2 * LEFT, UP + 2 * RIGHT)
+        arc = ArcBetweenPoints(DOWN + 2 * LEFT, UP + 2 * RIGHT, color=BLACK)
         self.add(airplane)
         self.play(FadeIn(arc))
-        self.play(MoveAlongPath(airplane, arc))
+        self.play(airplane.rotate, -30*DEGREES,
+                MoveAlongPath(airplane, arc))
+"""
+class GiftScene(Scene):
+    def construct(self):
+        self.prepare()
+        self.draw_maps()
+
+    def prepare(self):
+        self.dz = AvatarSVG(ASSETS_PATH + "dz.svg", fill_color=RED).scale(.5)
+        self.dz.set_y(-1)
+        self.fr = AvatarSVG(ASSETS_PATH + "fr.svg").scale(.5).set_y(1)
+
+        self.plane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.1)
+        self.hamster = ImageMobject(ASSETS_PATH + "hamster.png").scale(.1)
+        self.eiffel = ImageMobject(ASSETS_PATH + "paris.png").scale(.1)
+    
+    def draw_maps(self):
+        self.play(ShowCreation(self.dz))
+        self.play(ShowCreation(self.fr))
+
+    def zoom_dz(self):
+        pass
+"""
