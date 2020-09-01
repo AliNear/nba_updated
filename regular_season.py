@@ -213,8 +213,8 @@ class EndRegularSeason(NBAScene):
         self.rearrange_teams(self.teams, EASTERN_CONF_RANKING)
         self.rearrange_teams(self.teams_west, WESTERN_CONF_RANKING, east=False)
         self.animate_east()
-        self.add_wl()
-        self.to_playoffs()
+        # self.add_wl()
+        # self.to_playoffs()
 
     def prepare(self): 
 
@@ -318,10 +318,10 @@ class EndRegularSeason(NBAScene):
         self.rankings_east.arrange_submobjects(DOWN, False, False, buff=.365)
         self.rankings_west = self.rankings_east.copy().set_x(self.x_west - .5)
         self.teams_west.set_xy(self.x_west, self.y_conf)
-        self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.13})
         
         vector = 2 * RIGHT + .3 * DOWN
-        self.play(self.teams.move_to, vector)
+        self.play(self.teams.arrange_submobjects, DOWN, False, False, {"buff":.13},
+                  self.teams.move_to, vector)
         self.play(self.teams_west.arrange_submobjects, DOWN, False, False, {"buff":.13})
         self.wait()
         self.bg = TwoRects(plot_depth=-10)
