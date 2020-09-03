@@ -6,6 +6,7 @@ from projects.nba_update_project.consts_defs import *
 
 ASSETS_PATH = os.getcwd() + '/projects/nba_update_project/assets/'
 LOADING_COLOR = "#efeff0"
+NUM_DASHES = 70
 
 EUROPE = [
     "BE", "GR", "LT", "PT",
@@ -89,7 +90,12 @@ class MotivationScene(MovingCameraScene):
         self.world_map = AvatarSVG(ASSETS_PATH + "main_world.svg")
         self.world_map.scale(2)
         self.wait()
-
+        color="#595753"
+        background = ImageMobject(ASSETS_PATH + "basket_bg_2.jpg").scale(5).set_opacity(.2)
+        icon = Rectangle(fill_color=color, fill_opacity=.8).scale(10)
+        self.add(background)
+        self.add(icon)
+ 
     def draw_map(self):
         """Draw the world map"""
         self.play(ShowCreation(self.world_map))
@@ -146,18 +152,38 @@ class MotivationScene(MovingCameraScene):
         )
         self.play(FadeOut(self.world_map))
         self.play(Transform(self.us_copy, self.usa_map), run_time=.5)
+        #Showing the travel time between two cities
         la_city = self.usa_map.get_center() - (self.usa_map.get_width() * .34) * RIGHT
         mew_city = self.usa_map.get_center() + (self.usa_map.get_width() * .44) * RIGHT
+        mew_city = np.array([0.90, 1.88731114, 0.])
         self.la_point = Dot(la_city, color=BLUE_D).scale(.3)
         self.mew_point = Dot(mew_city, color=BLUE_D).scale(.3)
+
+        point_la = PointObject(self.la_point, LEFT, UP, .5)
+        point_mew = PointObject(self.mew_point, RIGHT, UP, .5)
+
         self.play(ShowCreation(self.la_point))
+        self.play(ShowCreation(point_la))
+        
+        text_la = Text("Los Angelos", font="DDT W00 Condensed Italic", color=WHITE).scale(.2)
+        text_la.next_to(point_la.straight, UP, buff=.1).shift(.08 * DOWN)
+        
+        self.play(FadeInFrom(text_la, 2 * LEFT))
         self.play(ShowCreation(self.mew_point))
+        
+        text_mew = Text("New York", font="DDT W00 Condensed Italic", color=WHITE).scale(.2)
+        text_mew.next_to(point_mew.straight, UP, buff=.1).shift(.08 * DOWN)
+        
+        self.play(ShowCreation(point_mew))
+        self.play(FadeInFrom(text_mew, 2 * RIGHT))
         self.wait()
+        self.new_york = VGroup(text_mew, point_mew)
 
         self.airplane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.1)
         self.airplane.move_to(self.la_point)
         between_cities = ArcBetweenPoints(la_city, mew_city,angle=-PI/6, color=GREEN)
-        self.between_cities_dashed = DashedVMobject(between_cities)
+        self.between_cities_dashed = DashedVMobject(between_cities, num_dashes=NUM_DASHES)
+        
         self.play(ShowCreation(self.between_cities_dashed))
         self.play(FadeIn(self.airplane))
         self.play(self.airplane.rotate, -10 * DEGREES,
@@ -165,42 +191,42 @@ class MotivationScene(MovingCameraScene):
 
     def draw_planes(self):
         self.play(FadeOut(self.airplane), FadeOut(self.between_cities_dashed), FadeOut(self.mew_point))
+        self.play(FadeOut(self.new_york), run_time=.5)
         center = self.usa_map.get_center()
         width = self.usa_map.get_width()
         height = self.usa_map.get_height()
         def to_new_coords(point, x_bias=.2):
-            x = (point[0] + center[0]) / 2.6
+            x = (point[0] + center[0]) / 2.4
             y = (point[1] + center[1]) / 2.4
             return np.array([x - x_bias, y + .9, 0])
         dots = VGroup()
         circles = VGroup()
         opacities = {"PACIFIC":1, "NORTHWEST": .6, "SOUTHWEST": .6, "ATLANTIC":.3, "SOUTHEAST": .3, "CENTRAL": .3}
-        for i in TEAMS_POSITIONS:
-            point = TEAMS_POSITIONS[i].pos
+        for i in TEAMS_POSITIONS_MOTIVATION:
+            point = TEAMS_POSITIONS_MOTIVATION[i].pos
             if i == "PortlandTrailBlazers":
                 res_point = to_new_coords(point, x_bias=0)
             elif i == "TorontoRaptors":
                 pass
             else:
                 res_point = to_new_coords(point)
-            opacity = opacities[TEAMS_POSITIONS[i].division]
+            opacity = opacities[TEAMS_POSITIONS_MOTIVATION[i].division]
             c = Circle(fill_color="FF0000", fill_opacity=opacity, radius=.4).scale(.2)
             d = Dot(res_point, color=RED).scale(.3)
             c.set_stroke(width=0)
             c.move_to(res_point)
             dots.add(d)
             circles.add(c)
-            print (res_point)
 
         rects = VGroup()
         texts_objects = VGroup()
-        x = -2.2
+        x = -2.3
         y = 2.5
         opacities = 1, .6, .3
         texts = ["Maximum", "Medium", "Low"]
         for i in range(3):
             r = Rectangle(fill_color="FF0000", fill_opacity=opacities[i]).scale(.05)
-            t = Text(texts[i] + " Matchups", font="DDT W00 Regulat", color=BLACK).scale(.1)
+            t = Text(texts[i] + " Matchups", font="DDT W00 Regular", color=WHITE).scale(.2)
             r.set_stroke(width=0)
             r.set_xy(x, y)
             y -= .2
@@ -211,7 +237,7 @@ class MotivationScene(MovingCameraScene):
         lines = VGroup()
         for i in [6, 7, 11, 14, 24]:
             between_cities = ArcBetweenPoints(self.la_point.get_center(), dots[i].get_center(),angle=-PI/6, color=GREEN)
-            between_cities_dashed = DashedVMobject(between_cities)
+            between_cities_dashed = DashedVMobject(between_cities, num_dashes=NUM_DASHES)
             lines.add(between_cities_dashed)
             self.play(ShowCreation(between_cities_dashed), run_time=.5)
         self.wait()
@@ -256,9 +282,9 @@ class AvatarSVG(SVGMobject):
         if not self.parts_named:
             self.name_parts()
         for i in self.parts:
-            i.set_color("#f2f2f2")
+            i.set_color("#ffffff")
             i.set_stroke(color=self.stroke_color, width=self.stroke_width)
-            self.set_opacity(.5)
+            self.set_opacity(1)
         return self
 
     def color_country(self, country_code, color=RED):
@@ -271,34 +297,37 @@ class AvatarSVG(SVGMobject):
         for i in countries_codes:
             self.color_country(i, color=color)
 
+class PointObject(VMobject):
+    """Creates a pointing line with an inflection.
+    Parameters
+    ----------
+    mobject: The object which the line points to
+    direction_x: x direction of pointing (RIGHT or LEFT)
+    direction_y: y direction of pointing (UP or DOWN)
 
+    """
+    CONFIG = {
+        "line_kwargs": {
+            "color": WHITE,
+            "stroke_width": 4
+        }
+    }
+    def __init__(self, mobject, direction_x=RIGHT, direction_y=UP, length=2, **kwargs):
+        VMobject.__init__(self, **kwargs)
+        start = mobject.get_center()
+        x_amount = length / 3
+        y_amount = x_amount * 2
+        inflection = y_amount * direction_y + x_amount * direction_x
+        end = start + inflection
+        self.oblic = Line(start, end, **self.line_kwargs)
+        self.straight = Line(end, end + length  * direction_x, **self.line_kwargs)
+        self.add(self.oblic, self.straight)
+         
+        
 class Test(Scene):
     def construct(self):
-        airplane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.5)
-        arc = ArcBetweenPoints(DOWN + 2 * LEFT, UP + 2 * RIGHT, color=BLACK)
-        self.add(airplane)
-        self.play(FadeIn(arc))
-        self.play(airplane.rotate, -30*DEGREES,
-                MoveAlongPath(airplane, arc))
-"""
-class GiftScene(Scene):
-    def construct(self):
-        self.prepare()
-        self.draw_maps()
-
-    def prepare(self):
-        self.dz = AvatarSVG(ASSETS_PATH + "dz.svg", fill_color=RED).scale(.5)
-        self.dz.set_y(-1)
-        self.fr = AvatarSVG(ASSETS_PATH + "fr.svg").scale(.5).set_y(1)
-
-        self.plane = ImageMobject(ASSETS_PATH + "airplane.png").scale(.1)
-        self.hamster = ImageMobject(ASSETS_PATH + "hamster.png").scale(.1)
-        self.eiffel = ImageMobject(ASSETS_PATH + "paris.png").scale(.1)
-    
-    def draw_maps(self):
-        self.play(ShowCreation(self.dz))
-        self.play(ShowCreation(self.fr))
-
-    def zoom_dz(self):
-        pass
-"""
+        center = np.array([-1.37926039e+00,  1.46954674e+00, -7.69914280e-16])
+        d = Dot(center, color=RED)
+        po = PointObject(d, LEFT, UP, 2)
+        self.play(ShowCreation(d))
+        self.play(ShowCreation(po))

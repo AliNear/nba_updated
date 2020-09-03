@@ -40,15 +40,15 @@ class DivisionScene(NBAScene):
         self.prepare()
         self.draw_foundation()
         self.begin_matchups()
-        self.clear_scene()
+        # self.clear_scene()
         #for the inter-division games
-        self.inter_division("NORTHWEST", names=NORTHWEST_NAMES)
-        self.wait()
-        self.clear_scene(False)
-        self.inter_division("SOUTHWEST", names=SOUTHWEST_NAMES)
-        self.clear_scene(False)
-        self.wait()
-        self.eatern_conf()
+        # self.inter_division("NORTHWEST", names=NORTHWEST_NAMES)
+        # self.wait()
+        # self.clear_scene(False)
+        # self.inter_division("SOUTHWEST", names=SOUTHWEST_NAMES)
+        # self.clear_scene(False)
+        # self.wait()
+        # self.eatern_conf()
     def prepare(self):
         self.add_teams("PACIFIC")
         self.teams.set_x(-6)
@@ -147,7 +147,7 @@ class DivisionScene(NBAScene):
             self.teams[0].scale, 2,
         )
         self.wait()
-        self.vs_text = Text("VS", font="Strenuous 3D", color=BLACK).scale(1.3)
+        self.vs_text = Text("VS", font="Strenuous 3D", color=WHITE).scale(1.3)
         self.vs_text.set_y(.3)
         self.play(Write(self.vs_text))
         for i in range(1,DIVISION_COUNT):
@@ -465,11 +465,13 @@ class EndRegularSeason(NBAScene):
 
 
 
-# class Test(Scene):
-#     def construct(self):
-#         icon = Rectangle(fill_color=GREEN, fill_opacity=1)
-#         line = get_cross_line(icon )
-
-#         self.play(ShowCreation(icon))
-#         self.play(ShowCreation(line))
+class Test(Scene):
+    def construct(self):
+        color="#595753"
+        background = ImageMobject(ASSETS_PATH + "basket_bg_3.jpg").scale(5).set_opacity(.2)
+        icon = Rectangle(fill_color=color, fill_opacity=.8).scale(10)
+        line = get_cross_line(icon )
+        self.add(background)
+        self.play(ShowCreation(icon))
+        self.play(ShowCreation(line))
 

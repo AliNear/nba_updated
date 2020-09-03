@@ -148,7 +148,38 @@ TEAMS_POSITIONS = {
     "TorontoRaptors": TeamData((3, 2.48), "ATLANTIC"),
     "BrooklynNets": TeamData((2.8, 0.8), "ATLANTIC"),
 }
-
+TEAMS_POSITIONS_MOTIVATION = {
+    "Houston_Rockets": TeamData((0.5, -1.5), "SOUTHWEST"),
+    "San_Antonio_Spurs": TeamData((0, -1.5), "SOUTHWEST"),
+    "WashingtonWizards": TeamData((2.4, 0.4), "SOUTHEAST"),
+    "SacramentoKings": TeamData((-2.3, 0.5), "PACIFIC"),
+    "UtahJazz": TeamData((-1.5, 0.35), "NORTHWEST"),
+    "LosAngelesLakers": TeamData((-2.2, -0.4), "PACIFIC"),
+    "ClevelandCavaliers": TeamData((2.2, 0.7), "CENTRAL"),
+    "Boston_Celtics": TeamData((03.2, 1.1), "ATLANTIC"),
+    "PhoenixSuns": TeamData((-1.5, -0.7), "PACIFIC"),
+    "DallasMavericks": TeamData((0.4, -1), "SOUTHWEST"),
+    "Memphis_Grizzlies": TeamData((1, -0.4), "SOUTHWEST"),
+    "MiamiHeat": TeamData((02.5, -1.7), "SOUTHEAST"),
+    "PortlandTrailBlazers": TeamData((-2.6, 01.3), "NORTHWEST"),
+    "Denver_Nuggets": TeamData((-0.7, 0), "NORTHWEST"),
+    "ChicagoBulls": TeamData((1.3, 0.6), "CENTRAL"),
+    "Oklahoma_City_Thunder": TeamData((0.3, -0.5), "NORTHWEST"),
+    "Indiana_Pacers": TeamData((1.4, 0.2), "CENTRAL"),
+    "Philadelphia76ers": TeamData((2.6, 0.5), "ATLANTIC"),
+    "Los_Angeles_Clippers": TeamData((-2.1, -0.5), "PACIFIC"),
+    "OrlandoMagic": TeamData((2.5, -1.4), "SOUTHEAST"),
+    "DetroitPistons": TeamData((1.8, 0.9), "CENTRAL"),
+    "NewYorkKnicks": TeamData((2.9, 0.9), "ATLANTIC"),
+    "Charlotte_Hornets": TeamData((2.3, -0.3), "SOUTHEAST"),
+    "MinnesotaTimberwolves": TeamData((0.6, 0.8), "NORTHWEST"),
+    "MilwaukeeBucks": TeamData((1.1, 1), "CENTRAL"),
+    "NewOrleansPelicans": TeamData((1.3, -1.3), "SOUTHWEST"),
+    "AtlantaHawks": TeamData((1.8, -0.5), "SOUTHEAST"),
+    "GoldenState": TeamData((-2.4, 0.2), "PACIFIC"),
+    "TorontoRaptors": TeamData((3, 2.48), "ATLANTIC"),
+    "BrooklynNets": TeamData((2.8, 0.8), "ATLANTIC"),
+}
 NORTHWEST_NAMES = ["Nuggets", "Timberwolves", "Thunder", "Blazers", "Jazz" ]
 SOUTHWEST_NAMES = ["Mavericks", "Rockets","Timberwolves", "Pelicans", "Spurs"]
 

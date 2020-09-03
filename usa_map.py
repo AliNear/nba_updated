@@ -10,7 +10,7 @@ class NumberAnimation(VMobject):
     """
     CONFIG = {
         "text_kwargs": {
-            "color": "#403c3c",
+            "color": WHITE, #403c3c",
             "font": "DDT W00 Condensed Bold Italic",
         },
         "scale_factor": .5,
@@ -58,11 +58,11 @@ class NBAScene(MovingCameraScene):
     CONFIG = {
             "text_kwargs": {
                 "font": "DDT W00 Condensed Bold Italic",
-                "color":"#403c3c",
+                "color": WHITE, #403c3c",
                 },
             "title_kwargs": {
                 "font": "DDT W00 Condensed Bold Italic",
-                "color": BLACK,
+                "color": WHITE,
                 },
             "background_img": ASSETS_PATH + "background.png",
             "normal_team_scale": .25,
@@ -71,8 +71,14 @@ class NBAScene(MovingCameraScene):
     def __init__(self, **kwargs):
         MovingCameraScene.__init__(self, **kwargs)
     def setup(self):
-        self.background = Avatar(self.background_img, 0, 0, 6, plot_depth=-10)
-        self.add(self.background)
+        # self.background = Avatar(self.background_img, 0, 0, 6, plot_depth=-10)
+        # self.add(self.background)
+        color="#595753"
+        background = ImageMobject(ASSETS_PATH + "basket_bg_2.jpg").scale(5).set_opacity(.2)
+        icon = Rectangle(fill_color=color, fill_opacity=.9).scale(10)
+        self.add(background)
+        self.add(icon)
+ 
         self.title = Text("REGULAR SEASON", **self.title_kwargs).scale(.8)
         self.title.set_xy(0, 3.6)
         self.add_wireframe()
@@ -112,13 +118,13 @@ class NBAScene(MovingCameraScene):
         y_lower_teal_divider = -.61
         self.main_line = Line(np.array([-10, y_main_line, 0]), 
                               np.array([10, y_main_line, 0]),
-                              color=BLACK, stroke_width=3)
+                              color=WHITE, stroke_width=3)
         left_divider = Line(np.array([-x_main_dividers, y_main_line, 0]), 
                             np.array([-x_main_dividers, -10, 0])
-                            , color=BLACK, stroke_width=2)
+                            , color=WHITE, stroke_width=2)
         right_divider = left_divider.copy().set_x(x_main_dividers)
         upper_team_divider = Line(np.array([-x_main_dividers, y_upper_team_divider, 0]), 
-                np.array([x_main_dividers, y_upper_team_divider, 0]), color=BLACK, stroke_width=1)
+                np.array([x_main_dividers, y_upper_team_divider, 0]), color=WHITE, stroke_width=1)
         lower_team_divider = upper_team_divider.copy().set_y(y_lower_teal_divider)
         self.main_dividers = VGroup(left_divider, right_divider)
         self.team_dividers = VGroup(upper_team_divider, lower_team_divider)
